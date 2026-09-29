@@ -31,7 +31,7 @@ HiCite = {
 	// Settings shared with the export translator (which reads them with Zotero.getHiddenPref,
 	// i.e. the prefs extensions.zotero.translators.hicite.*). Defaults also live in prefs.js and
 	// in the translator's header; keep the three in step.
-	SETTINGS: { keySource: 'own', caseKeys: 'shorttitle', shortTitleInline: true, omitRedundantSite: true, includeUrls: true },
+	SETTINGS: { keySource: 'own', caseKeys: 'shorttitle', shortTitleInline: true, omitRedundantSite: true, includeUrls: true, maxAuthors: '0' },
 	settingObservers: [],
 
 	pref(name) {
@@ -58,10 +58,21 @@ HiCite = {
 	PARTICLES: /^(van|von|de|der|den|di|da|del|della|la|le|du|bin|ibn|al|el|ter|ten)$/i,
 	CORP_SUFFIX: /[,\s]+(inc|incorporated|llc|l\.l\.c|ltd|limited|corp|corporation|co|company|plc|pbc|lp|llp|gmbh|ag|sa)\.?$/i,
 
+	// "First Last [Suffix]" from the forms people are typed in: drops a "[@handle]" and a trailing
+	// ";", reads "Hill, Jr." as a suffix and "Last, First" as inverted.
+	tidyName(name) {
+		name = String(name || '').replace(/\s*\[[^\]]*\]\s*/g, ' ').replace(/[;\s]+$/, '').trim();
+		let m = /^(.+?),\s*(jr\.?|sr\.?|ii|iii|iv)$/i.exec(name);
+		if (m) return m[1] + ' ' + m[2];
+		m = /^([^,;]+),\s*([^,;]+)$/.exec(name);
+		if (m && !this.ORG_WORDS.test(name) && /^[A-Z\u00C0-\u00DD]/.test(m[1]) && /^[A-Z\u00C0-\u00DD]/.test(m[2])) return m[2] + ' ' + m[1];
+		return name;
+	},
+
 	// A single-field name (Zotero's fieldMode 1) is a person if it is 2-5 capitalized words with no
 	// institution words, digits, commas or all-caps tokens.
 	looksLikePerson(name) {
-		name = String(name || '').trim();
+		name = this.tidyName(name);
 		let t = name.split(/\s+/);
 		if (t.length < 2 || t.length > 5) return false;
 		if (/[,;&\d]/.test(name) || this.ORG_WORDS.test(name) || /^the\s/i.test(name)) return false;
@@ -73,7 +84,7 @@ HiCite = {
 	},
 
 	splitPerson(name) {
-		let t = String(name).trim().split(/\s+/), suffix = '';
+		let t = this.tidyName(name).split(/\s+/), suffix = '';
 		if (t.length > 2 && /^(jr|sr|ii|iii|iv)\.?$/i.test(t[t.length - 1])) suffix = t.pop();
 		let family = [t.pop()];
 		while (t.length > 1 && this.PARTICLES.test(t[t.length - 1])) family.unshift(t.pop());
@@ -479,17 +490,44 @@ HiCite = {
 		return keys;
 	},
 
-	// Regenerate the citation keys of every case in a library or collection (including
-	// sub-collections), e.g. after changing the case-key setting.
-	async regenerateCaseKeys(scope) {
-		let cases = (await this.scopeItems(scope)).filter(i => i.itemType === 'case');
+	// Ask the user before replacing keys in bulk (anything that cites the old keys must be updated).
+	confirmRegenerate(what, count, where) {
+		try {
+			return Services.prompt.confirm(Zotero.getMainWindow(), 'Regenerate citation keys',
+				`Regenerate the citation keys of ${count} ${what} in ${where}?\n\nEach key is replaced by one generated ` +
+				'from the current settings. Anything that cites the old keys (LaTeX files, exported .tex files) ' +
+				'will need updating.');
+		}
+		catch (e) { return false; } // no way to ask: do nothing
+	},
+
+	// Regenerate the keys of every regular item in a library or collection (including sub-collections),
+	// or only its cases. `confirm(count)` is asked first; returning false cancels.
+	async regenerateKeys(scope, { casesOnly = false, confirm = null } = {}) {
+		let items = await this.scopeItems(scope);
+		if (casesOnly) items = items.filter(i => i.itemType === 'case');
+		if (confirm && items.length && !await confirm(items.length)) return { total: items.length, changed: 0, cancelled: true };
 		let changed = 0;
-		for (let item of cases) {
+		for (let item of items) {
 			let before = this.getKey(item);
 			if (await this.pin(item, { force: true }) !== before) changed++;
 		}
 		this.schedule(new Set([scope.libraryID]));
-		return { total: cases.length, changed };
+		return { total: items.length, changed, cancelled: false };
+	},
+
+	regenerateCaseKeys(scope, options) {
+		return this.regenerateKeys(scope, Object.assign({}, options, { casesOnly: true }));
+	},
+
+	async regenerateFromMenu(ctx, scope, casesOnly) {
+		let row = ctx.collectionTreeRows[0];
+		let where = `"${row.isCollection() ? row.ref.name : Zotero.Libraries.getName(scope.libraryID)}"`;
+		let r = await this.regenerateKeys(scope, {
+			casesOnly,
+			confirm: count => this.confirmRegenerate(casesOnly ? 'cases' : 'items', count, where),
+		});
+		if (!r.cancelled) this.notify(`Regenerated the keys of ${r.changed} of ${r.total} ${casesOnly ? 'cases' : 'items'}`);
 	},
 
 	registerMenus() {
@@ -542,10 +580,12 @@ HiCite = {
 			{
 				menuType: 'menuitem', l10nID: 'hicite-menu-regenerate-cases',
 				onShowing: (event, ctx) => ctx.setVisible(!!single(ctx)),
-				onCommand: async (event, ctx) => {
-					let r = await this.regenerateCaseKeys(single(ctx));
-					this.notify(`Regenerated the keys of ${r.changed} of ${r.total} cases`);
-				},
+				onCommand: (event, ctx) => this.regenerateFromMenu(ctx, single(ctx), true),
+			},
+			{
+				menuType: 'menuitem', l10nID: 'hicite-menu-regenerate-all',
+				onShowing: (event, ctx) => ctx.setVisible(!!single(ctx)),
+				onCommand: (event, ctx) => this.regenerateFromMenu(ctx, single(ctx), false),
 			},
 			{
 				menuType: 'menuitem', l10nID: 'hicite-menu-autoexport-stop',

@@ -529,5 +529,186 @@
    }
   ],
   "date": "1979"
+ },
+ {
+  "itemType": "journalArticle",
+  "title": "Many authors",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Ada",
+    "lastName": "Alpha"
+   },
+   {
+    "creatorType": "author",
+    "firstName": "Bea",
+    "lastName": "Beta"
+   },
+   {
+    "creatorType": "author",
+    "firstName": "Cy",
+    "lastName": "Gamma"
+   },
+   {
+    "creatorType": "author",
+    "firstName": "Di",
+    "lastName": "Delta"
+   },
+   {
+    "creatorType": "author",
+    "firstName": "Ed",
+    "lastName": "Epsilon"
+   },
+   {
+    "creatorType": "author",
+    "firstName": "Flo",
+    "lastName": "Zeta"
+   },
+   {
+    "creatorType": "editor",
+    "firstName": "Ed",
+    "lastName": "Itor"
+   }
+  ],
+  "publicationTitle": "Big Journal",
+  "volume": "3",
+  "pages": "1",
+  "date": "2020"
+ },
+ {
+  "itemType": "journalArticle",
+  "title": "Two authors only",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Ann",
+    "lastName": "One"
+   },
+   {
+    "creatorType": "author",
+    "firstName": "Bob",
+    "lastName": "Two"
+   }
+  ],
+  "publicationTitle": "Small Journal",
+  "volume": "2",
+  "pages": "9",
+  "date": "2019"
+ },
+ {
+  "itemType": "report",
+  "title": "Institutional authors",
+  "creators": [
+   {
+    "creatorType": "author",
+    "name": "Alpha Committee",
+    "fieldMode": 1,
+    "lastName": "Alpha Committee",
+    "firstName": ""
+   },
+   {
+    "creatorType": "author",
+    "name": "Beta Office",
+    "fieldMode": 1,
+    "lastName": "Beta Office",
+    "firstName": ""
+   },
+   {
+    "creatorType": "author",
+    "name": "Gamma Agency",
+    "fieldMode": 1,
+    "lastName": "Gamma Agency",
+    "firstName": ""
+   }
+  ],
+  "reportNumber": "R-1",
+  "institution": "Somewhere",
+  "date": "2020"
+ },
+ {
+  "itemType": "journalArticle",
+  "title": "Inverted and decorated names",
+  "creators": [
+   {
+    "creatorType": "author",
+    "name": "Dzieza, Josh",
+    "fieldMode": 1,
+    "lastName": "Dzieza, Josh",
+    "firstName": ""
+   },
+   {
+    "creatorType": "author",
+    "name": "Thomas E. Hill, Jr.",
+    "fieldMode": 1,
+    "lastName": "Thomas E. Hill, Jr.",
+    "firstName": ""
+   },
+   {
+    "creatorType": "author",
+    "name": "Ruairi Robinson [@RuairiRobinson]",
+    "fieldMode": 1,
+    "lastName": "Ruairi Robinson [@RuairiRobinson]",
+    "firstName": ""
+   },
+   {
+    "creatorType": "author",
+    "name": "Rose, Meredith Filak;",
+    "fieldMode": 1,
+    "lastName": "Rose, Meredith Filak;",
+    "firstName": ""
+   }
+  ],
+  "publicationTitle": "Names Journal",
+  "volume": "4",
+  "pages": "7",
+  "date": "2021"
+ },
+ {
+  "itemType": "webpage",
+  "title": "Institution with a comma",
+  "creators": [
+   {
+    "creatorType": "author",
+    "name": "University of California, San Diego",
+    "fieldMode": 1,
+    "lastName": "University of California, San Diego",
+    "firstName": ""
+   }
+  ],
+  "websiteTitle": "Somewhere Else",
+  "date": "2022",
+  "url": "https://example.edu/x"
+ },
+ {
+  "itemType": "book",
+  "title": "An edited volume",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Ann",
+    "lastName": "Writer"
+   },
+   {
+    "creatorType": "editor",
+    "firstName": "Ed0",
+    "lastName": "EdOne"
+   },
+   {
+    "creatorType": "editor",
+    "firstName": "Ed1",
+    "lastName": "EdTwo"
+   },
+   {
+    "creatorType": "editor",
+    "firstName": "Ed2",
+    "lastName": "EdThree"
+   },
+   {
+    "creatorType": "editor",
+    "firstName": "Ed3",
+    "lastName": "EdFour"
+   }
+  ],
+  "date": "2018"
  }
 ]

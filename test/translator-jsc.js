@@ -66,4 +66,24 @@ has(run({}, {}, [Object.assign({}, withNative[0], { extra: 'Citation Key: pinned
 // publisher option still works
 has(run({}, { 'Include publisher': true }, items.filter(function (i) { return i.title === 'Nimmer on Copyright & Related Things'; })), 'publisher={LexisNexis}', 'Include publisher');
 
+// author cap
+var many = function (t) { return items.filter(function (i) { return i.title === t; }); };
+var e6 = entry(run({}, {}, many('Many authors')), 'alpha2020');
+eq((e6.match(/    author=/g) || []).length, 6, 'default lists every author'); hasNot(e6, 'et al.', 'no "et al." by default');
+var c3 = entry(run({ maxAuthors: '3' }, {}, many('Many authors')), 'alpha2020');
+eq((c3.match(/    author=/g) || []).length, 3, 'cap 3 lists three authors'); has(c3, 'author={Cy {Gamma} et al.},', 'the last listed author gets " et al."'); hasNot(c3, 'Delta', 'the rest are left out');
+var c1 = entry(run({ maxAuthors: '1' }, {}, many('Many authors')), 'alpha2020'); has(c1, 'author={Ada {Alpha} et al.},', 'cap 1 = first author et al.');
+hasNot(entry(run({ maxAuthors: '3' }, {}, many('Two authors only')), 'one2019'), 'et al.', 'fewer authors than the cap: no "et al."');
+has(entry(run({ maxAuthors: '2' }, {}, many('Institutional authors')), 'alphacommittee2020'), 'instauth={Beta Office et al.},', 'institutions get "et al." appended to the name');
+var ed = entry(run({ maxAuthors: '1' }, {}, many('An edited volume')), 'writer2018'); eq((ed.match(/    editor=/g) || []).length, 4, 'editors are never capped'); hasNot(ed, 'et al.', 'a single author is not shortened');
+has(entry(run({ maxAuthors: 'banana' }, {}, many('Many authors')), 'alpha2020'), 'author={Flo {Zeta}},', 'an invalid cap means "all"');
+var pre = items.filter(function (i) { return i.title === 'Attention Is All You Need'; });
+has(run({ maxAuthors: '1' }, {}, pre), 'author={Ashish {Vaswani} et al.}', 'the cap applies to preprints too'); hasNot(run({ maxAuthors: '2' }, {}, pre), 'et al.', 'exactly as many authors as the cap: no "et al."');
+
+// name forms
+e = entry(out, 'dzieza2021');
+has(e, 'author={Josh {Dzieza}}', '"Last, First" read as inverted'); has(e, 'author={Thomas E. {Hill {Jr.}}}', '"Name, Jr." keeps the suffix'); has(e, 'author={Ruairi {Robinson}}', '[@handle] dropped');
+has(e, 'author={Meredith Filak {Rose}}', 'trailing ";" dropped, multi-word given name');
+has(entry(out, 'universityofcaliforniasandiego2022'), 'instauth={University of California, San Diego}', 'an institution with a comma stays an institution');
+
 print(errors.length ? 'FAIL\n' + errors.join('\n') : 'translator OK (preprints, containers, names, urls, cases, keys, each setting)');

@@ -47,6 +47,8 @@ var cases = [
 	['case keys "nameyear" -> first word + year', mockItem('case', alvarez), {}, 'united2012', { caseKeys: 'nameyear' }],
 	['single-field person -> family name + year', mockItem('webpage', { title: 'X', date: '2024' }, [single('Thomas Haigh')]), {}, 'haigh2024'],
 	['single-field institution -> whole name + year', mockItem('webpage', { title: 'X', date: '2025' }, [single('Anthropic PBC')]), {}, 'anthropicpbc2025'],
+	['"Last, First" single-field name -> last name', mockItem('webpage', { title: 'X', date: '2021' }, [single('Dzieza, Josh')]), {}, 'dzieza2021'],
+	['"Name, Jr." -> last name, suffix ignored', mockItem('book', { title: 'X', date: '2020' }, [single('Thomas E. Hill, Jr.')]), {}, 'hill2020'],
 	['person with particle', mockItem('journalArticle', { title: 'X', date: '2014' }, [single('Bart van Merrienboer')]), {}, 'vanmerrienboer2014'],
 	['two-field creator -> last name + year', mockItem('book', { title: 'X', date: '1979' }, [{ creatorTypeID: 1, lastName: 'Chomsky', firstName: 'Noam', fieldMode: 0 }]), {}, 'chomsky1979'],
 	['own (default): the native key is ignored', mockItem('webpage', { title: 'X', date: '2024', citationKey: 'thomashaigh2024' }, [single('Thomas Haigh')]), {}, 'haigh2024'],

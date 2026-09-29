@@ -12,5 +12,7 @@ hicite-menu-autoexport-now =
     .label = hicite: Export Now
 hicite-menu-regenerate-cases =
     .label = hicite: Regenerate Case Keys
+hicite-menu-regenerate-all =
+    .label = hicite: Regenerate All Citation Keys…
 hicite-menu-autoexport-run-all =
     .label = hicite: Run All Auto-Exports Now

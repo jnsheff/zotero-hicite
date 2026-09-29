@@ -5,3 +5,4 @@ pref("extensions.zotero.translators.hicite.shortTitleInline", true);
 pref("extensions.zotero.translators.hicite.omitRedundantSite", true);
 pref("extensions.zotero.translators.hicite.includeUrls", true);
 pref("extensions.zotero.translators.hicite.refresh", "");
+pref("extensions.zotero.translators.hicite.maxAuthors", "0");

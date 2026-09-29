@@ -18,7 +18,8 @@
 		"hicite.caseKeys": "shorttitle",
 		"hicite.shortTitleInline": true,
 		"hicite.omitRedundantSite": true,
-		"hicite.includeUrls": true
+		"hicite.includeUrls": true,
+		"hicite.maxAuthors": "0"
 	},
 	"lastUpdated": "2026-09-29 18:00:00"
 }
@@ -51,7 +52,7 @@ var SKIP_TYPES = { note: 1, attachment: 1, annotation: 1 };
 // ---------------------------------------------------------------- settings
 
 var DEFAULTS = {
-	keySource: 'own', caseKeys: 'shorttitle', shortTitleInline: true, omitRedundantSite: true, includeUrls: true
+	keySource: 'own', caseKeys: 'shorttitle', shortTitleInline: true, omitRedundantSite: true, includeUrls: true, maxAuthors: '0'
 };
 
 function setting(name) {
@@ -87,23 +88,34 @@ function creatorsOf(item, type) {
 var ORG_WORDS = /\b(inc|incorporated|llc|ltd|limited|corp|corporation|company|co|foundation|institute|university|college|commission|committee|council|office|department|dept|agency|center|centre|association|society|group|labs?|team|board|bureau|government|congress|senate|administration|organization|organisation|conference|legislatures?|initiative|project|network|press|news|review|journal|policy|division|ministry|union|alliance|consortium|forum|trust|fund|bank|pbc|ai|hai|gov|technologies|systems|research|library|museum|school|service|services|international|global)\b/i;
 var PARTICLES = /^(van|von|de|der|den|di|da|del|della|la|le|du|bin|ibn|al|el|ter|ten)$/i;
 
+// Bring the single-field forms people are typed in to "First Last [Suffix]": drop a "[@handle]",
+// trailing ";", read "Hill, Jr." as a suffix and "Last, First" as inverted.
+function tidyName(name) {
+	name = String(name || '').replace(/\s*\[[^\]]*\]\s*/g, ' ').replace(/[;\s]+$/, '').trim();
+	var m = /^(.+?),\s*(jr\.?|sr\.?|ii|iii|iv)$/i.exec(name);
+	if (m) return m[1] + ' ' + m[2];
+	m = /^([^,;]+),\s*([^,;]+)$/.exec(name);
+	if (m && !ORG_WORDS.test(name) && /^[A-Z\u00C0-\u00DD]/.test(m[1]) && /^[A-Z\u00C0-\u00DD]/.test(m[2])) return m[2] + ' ' + m[1];
+	return name;
+}
+
 // Zotero stores many people as a single "name" field (fieldMode 1), which hicite must not
 // treat as an institution. A single-field name is a person if it is 2-5 capitalized words
 // with no institution words, digits, commas or all-caps tokens.
 function looksLikePerson(name) {
-	name = String(name || '').trim();
+	name = tidyName(name);
 	var t = name.split(/\s+/);
 	if (t.length < 2 || t.length > 5) return false;
 	if (/[,;&\d]/.test(name) || ORG_WORDS.test(name) || /^the\s/i.test(name)) return false;
 	for (var i = 0; i < t.length; i++) {
 		if (t[i].length > 1 && t[i] === t[i].toUpperCase() && /[A-Z]/.test(t[i]) && !/^[A-Z]\.?$/.test(t[i])) return false; // NVIDIA, HAI
-		if (!(/^[A-ZÀ-Ý]/.test(t[i]) || PARTICLES.test(t[i]) || /^st\.?$/i.test(t[i]))) return false;
+		if (!(/^[A-Z\u00C0-\u00DD]/.test(t[i]) || PARTICLES.test(t[i]) || /^st\.?$/i.test(t[i]))) return false;
 	}
 	return true;
 }
 
 function splitPerson(name) {
-	var t = String(name).trim().split(/\s+/), suffix = '';
+	var t = tidyName(name).split(/\s+/), suffix = '';
 	if (t.length > 2 && /^(jr|sr|ii|iii|iv)\.?$/i.test(t[t.length - 1])) suffix = t.pop();
 	var family = [t.pop()];
 	while (t.length > 1 && PARTICLES.test(t[t.length - 1])) family.unshift(t.pop());
@@ -314,12 +326,16 @@ Def.prototype.set = function (k, v) {
 	if (v !== '' && v !== undefined && v !== null) this.raw(k, tex(v));
 	return this;
 };
-Def.prototype.names = function (item, ctype, personal, inst) {
-	var self = this;
-	creatorsOf(item, ctype).forEach(function (c) {
+// Names of one kind of creator. With a positive `cap`, at most that many are listed and, when
+// some are left out, the last one listed gets " et al." (hicite's syntax for a shortened list).
+Def.prototype.names = function (item, ctype, personal, inst, cap) {
+	var self = this, cs = creatorsOf(item, ctype), n = cs.length;
+	var limit = cap > 0 && n > cap ? cap : n;
+	cs.slice(0, limit).forEach(function (c, i) {
+		var etal = limit < n && i === limit - 1 ? ' et al.' : '';
 		var p = personParts(c);
-		if (p) self.raw(personal, tex(p.given) + ' {' + tex(p.family) + (p.suffix ? ' {' + tex(p.suffix) + '}' : '') + '}');
-		else self.set(inst, c.name || c.lastName);
+		if (p) self.raw(personal, tex(p.given) + ' {' + tex(p.family) + (p.suffix ? ' {' + tex(p.suffix) + '}' : '') + '}' + etal);
+		else if (c.name || c.lastName) self.raw(inst, tex(c.name || c.lastName) + etal);
 	});
 	return this;
 };
@@ -342,9 +358,15 @@ Def.prototype.toString = function () {
 
 function includePublisher() { return Zotero.getOption('Include publisher'); }
 
+// The most authors to list before "et al." (0 = all of them).
+function maxAuthors() {
+	var n = parseInt(setting('maxAuthors'), 10);
+	return n > 0 ? n : 0;
+}
+
 function container(item, titleFields, opts) {
 	var inner = new Def('book', '');
-	inner.names(item, 'bookAuthor', 'author', 'instauth')
+	inner.names(item, 'bookAuthor', 'author', 'instauth', maxAuthors())
 		.names(item, 'editor', 'editor', 'insted')
 		.set('title', pick.apply(null, [item].concat(titleFields)))
 		.set('edition', edition(item))
@@ -360,7 +382,7 @@ function emit(item, key) {
 	switch (t) {
 		case 'journalArticle':
 			d = new Def('jrnart', key);
-			d.names(item, 'author', 'author', 'instauth')
+			d.names(item, 'author', 'author', 'instauth', maxAuthors())
 				.set('title', pick(item, 'title'))
 				.set('vol', pick(item, 'volume'))
 				.set('rep', pick(item, 'publicationTitle'))
@@ -371,7 +393,7 @@ function emit(item, key) {
 
 		case 'book':
 			d = new Def('book', key);
-			d.names(item, 'author', 'author', 'instauth')
+			d.names(item, 'author', 'author', 'instauth', maxAuthors())
 				.names(item, 'editor', 'editor', 'insted')
 				.set('title', pick(item, 'title'))
 				.set('vol', pick(item, 'volume'))
@@ -383,7 +405,7 @@ function emit(item, key) {
 
 		case 'bookSection':
 			d = new Def('citecontainer', key);
-			d.names(item, 'author', 'author', 'instauth')
+			d.names(item, 'author', 'author', 'instauth', maxAuthors())
 				.set('name', pick(item, 'title'))
 				.set('year', yearOf(item) || 'nd')
 				.set('page', firstPage(pick(item, 'pages')))
@@ -393,7 +415,7 @@ function emit(item, key) {
 
 		case 'conferencePaper':
 			d = new Def('citecontainer', key);
-			d.names(item, 'author', 'author', 'instauth')
+			d.names(item, 'author', 'author', 'instauth', maxAuthors())
 				.set('name', pick(item, 'title'))
 				.set('year', yearOf(item) || 'nd')
 				.set('page', firstPage(pick(item, 'pages')))
@@ -403,7 +425,7 @@ function emit(item, key) {
 
 		case 'encyclopediaArticle':
 			d = new Def('citecontainer', key);
-			d.names(item, 'author', 'author', 'instauth')
+			d.names(item, 'author', 'author', 'instauth', maxAuthors())
 				.set('name', pick(item, 'title'))
 				.set('page', firstPage(pick(item, 'pages')))
 				.ref('in', 'book', container(item, ['encyclopediaTitle', 'publicationTitle', 'bookTitle'], { year: true }))
@@ -413,7 +435,7 @@ function emit(item, key) {
 		case 'magazineArticle':
 		case 'newspaperArticle':
 			d = new Def('magart', key);
-			d.names(item, 'author', 'author', 'instauth')
+			d.names(item, 'author', 'author', 'instauth', maxAuthors())
 				.set('title', pick(item, 'title'))
 				.set('journal', pick(item, 'publicationTitle'))
 				.set('page', firstPage(pick(item, 'pages')))
@@ -425,7 +447,7 @@ function emit(item, key) {
 			var number = preprintNumber(item);
 			if (number) {
 				d = new Def('workingpaper', key);
-				d.names(item, 'author', 'author', 'instauth')
+				d.names(item, 'author', 'author', 'instauth', maxAuthors())
 					.set('title', pick(item, 'title'))
 					.set('publisher', preprintPublisher(item))
 					.set('number', number)
@@ -440,7 +462,7 @@ function emit(item, key) {
 		case 'manuscript':
 		case 'letter':
 			d = new Def('manuscript', key);
-			d.names(item, 'author', 'author', 'instauth')
+			d.names(item, 'author', 'author', 'instauth', maxAuthors())
 				.set('title', pick(item, 'title'))
 				.set('type', pick(item, 'thesisType', 'manuscriptType', 'letterType') || (t === 'letter' ? 'letter' : ''))
 				.set('date', dateOf(item))
@@ -451,7 +473,7 @@ function emit(item, key) {
 			if (!pick(item, 'reportNumber')) {
 				// \defworkingpaper requires a number; unnumbered reports are cited like books
 				d = new Def('book', key);
-				d.names(item, 'author', 'author', 'instauth')
+				d.names(item, 'author', 'author', 'instauth', maxAuthors())
 					.names(item, 'editor', 'editor', 'insted')
 					.set('title', pick(item, 'title'))
 					.set('publisher', includePublisher() ? pick(item, 'institution', 'publisher') : '')
@@ -460,7 +482,7 @@ function emit(item, key) {
 				return [d];
 			}
 			d = new Def('workingpaper', key);
-			d.names(item, 'author', 'author', 'instauth')
+			d.names(item, 'author', 'author', 'instauth', maxAuthors())
 				.set('title', pick(item, 'title'))
 				.set('type', pick(item, 'reportType'))
 				.set('publisher', pick(item, 'institution', 'publisher'))
@@ -504,7 +526,7 @@ function emit(item, key) {
 function webpage(item, key) {
 	var d = new Def('website', key);
 	var site = pick(item, 'websiteTitle', 'publicationTitle', 'blogTitle', 'forumTitle', 'programTitle', 'publisher');
-	d.names(item, 'author', 'author', 'instauth')
+	d.names(item, 'author', 'author', 'instauth', maxAuthors())
 		.set('title', pick(item, 'title', 'nameOfAct', 'caseName'))
 		.set('journal', siteRepeatsAuthor(item, site) ? '' : site)
 		.set('date', dateOf(item))

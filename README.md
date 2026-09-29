@@ -11,7 +11,11 @@ not read BibTeX; its native input is its own reference definitions
   ("Thomas Haigh") are recognized and keyed on the family name, institutions on their whole name
   (`anthropicpbc2025`). **Cases** are keyed by their Short Title, or else the first party without
   "Inc."/"LLC" (`grokster`, `garcia`). Alternatively a Settings choice adopts Better BibTeX's key when
-  hicite can use it. hicite can use a key that starts with a letter and contains only letters, digits and
+  hicite can use it. Keys are built from **last names only** (`amodei2016`, not `darioamodei2016`): Zotero's single-field names are
+  read as "First Last", "Last, First", "Name, Jr." and "Name [@handle]", and institutions keep their whole
+  name (`anthropicpbc2025`). A key that is already pinned never changes on its own, so keys pinned by an older
+  version (or adopted from Better BibTeX) keep their old form until you regenerate them.
+  hicite can use a key that starts with a letter and contains only letters, digits and
   hyphens; anything else (for example `2012`) is ignored.
 * **Export translator.** File > Export Library, or right-click a collection >
   Export, then choose **hicite**. Writes a `.tex` file of definitions.
@@ -29,11 +33,11 @@ not read BibTeX; its native input is its own reference definitions
   hicite: Run All Auto-Exports Now* re-runs every job. Missing citation keys in
   the exported scope are pinned before each run so keys never shift as the
   library grows.
-* **Settings.** Zotero > Settings > **hicite**: key source and case-key style, whether Short Titles
-  become short-form names, whether a website's title is dropped when it repeats the author, URLs, and
-  your auto-exports (each with its own *Include publisher* checkbox and a *Stop* button).
+* **Settings.** Zotero > Settings > **hicite**: key source and case-key style, how many authors to list
+  before "et al.", whether Short Titles become short-form names, whether a website's title is dropped when
+  it repeats the author, URLs, and your auto-exports (each with its own *Include publisher* checkbox and a *Stop* button).
 * **Item menu.** *hicite: Pin / Regenerate / Copy Citation Keys*; on a library or collection,
-  *hicite: Regenerate Case Keys*. Copy yields
+  *hicite: Regenerate Case Keys* and *hicite: Regenerate All Citation Keys…* (both ask for confirmation). Copy yields
   `key1; key2`, ready to paste into `\sentence{...}`.
 
 ## Install
@@ -72,7 +76,8 @@ To build it yourself: `make xpi`.
 | Statute (code + section) | `statcode` |
 | Web Page, Blog Post and everything else | `website` |
 
-Other export rules: a Short Title becomes the short-form name (`inline`); single-field names that look
+Other export rules: with an *Authors listed* limit set, a longer author list is cut off and the last name kept
+gets hicite's " et al." (`author={Cy {Gamma} et al.}`); editors are never cut. A Short Title becomes the short-form name (`inline`); single-field names that look
 like people are exported as people (with particles and suffixes: `Bart {van Merrienboer}`,
 `Dean {Edmonds {Jr.}}`); a website's title is left out when it repeats the author; URLs are kept for web
 sources and for cases without a reporter, and dropped for books, chapters and articles that have a print

@@ -32,7 +32,9 @@ var bad = 0, n = 0, lines = [];
 	});
 });
 var names = ['Thomas Haigh', 'Patrick R Goold', 'OpenAI', 'Anthropic PBC', 'Stanford HAI', 'The White House', 'Center for AI Safety', 'European Commission', 'NVIDIA', 'Karen Sparck Jones',
-	'Bart van Merrienboer', 'Dean Edmonds Jr.', 'A. Feder Cooper', 'Copyright Division, Agency for Cultural Affairs, Japan', 'ashwinbalaji699', 'Uniform Law Commission', 'Mark A. Lemley', 'Multi State'];
+	'Bart van Merrienboer', 'Dean Edmonds Jr.', 'A. Feder Cooper', 'Copyright Division, Agency for Cultural Affairs, Japan', 'ashwinbalaji699', 'Uniform Law Commission', 'Mark A. Lemley', 'Multi State',
+	'Dzieza, Josh', 'Thomas E. Hill, Jr.', 'Ruairi Robinson [@RuairiRobinson]', 'Rose, Meredith Filak;', 'University of California, San Diego',
+	'Library of Congress, Copyright Office', 'Congress of the United States, Office of Technology Assessment', 'Jeremy', 'Aristotle', 'Van Der Berg, Hans'];
 names.forEach(function (nm) {
 	var a = new Function('Zotero', trBody + '; return [looksLikePerson(arguments[1]), looksLikePerson(arguments[1]) ? splitPerson(arguments[1]) : null];')(Zotero, nm);
 	var p = [HC.looksLikePerson(nm), HC.looksLikePerson(nm) ? HC.splitPerson(nm) : null]; n++;

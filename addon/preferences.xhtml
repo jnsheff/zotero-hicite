@@ -25,7 +25,7 @@
 		<description>
 			Keys are pinned in each item's Extra field the first time they are needed. A changed setting applies to
 			items that have no key yet; to re-key existing items, right-click them (or a collection) and choose
-			"hicite: Regenerate Citation Key" or "hicite: Regenerate Case Keys".
+			"hicite: Regenerate Citation Key", "hicite: Regenerate Case Keys" or "hicite: Regenerate All Citation Keys".
 		</description>
 	</groupbox>
 
@@ -35,6 +35,22 @@
 			preference="extensions.zotero.translators.hicite.shortTitleInline"/>
 		<checkbox label="Leave out a website's title when it repeats the author"
 			preference="extensions.zotero.translators.hicite.omitRedundantSite"/>
+		<hbox align="center">
+			<label value="Authors listed:" control="hicite-maxAuthors"/>
+			<menulist id="hicite-maxAuthors" native="true" preference="extensions.zotero.translators.hicite.maxAuthors">
+				<menupopup>
+					<menuitem label="All of them" value="0"/>
+					<menuitem label="First author, then et al." value="1"/>
+					<menuitem label="First 2, then et al." value="2"/>
+					<menuitem label="First 3, then et al." value="3"/>
+					<menuitem label="First 4, then et al." value="4"/>
+					<menuitem label="First 5, then et al." value="5"/>
+					<menuitem label="First 6, then et al." value="6"/>
+					<menuitem label="First 8, then et al." value="8"/>
+					<menuitem label="First 10, then et al." value="10"/>
+				</menupopup>
+			</menulist>
+		</hbox>
 		<checkbox label="Include URLs (kept for web sources; dropped for works with a print citation)"
 			preference="extensions.zotero.translators.hicite.includeUrls"/>
 		<description>Changes apply to the next export and re-run your auto-exports.</description>
