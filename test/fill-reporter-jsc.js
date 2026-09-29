@@ -31,6 +31,11 @@ new Function('HICITE_TEST', 'return (async () => {' + src + '})()')(true).then(f
 	eq([F.finalCourt({ court: 'U.S.', kind: 'supreme' }, 'U.S.'), F.finalCourt({ court: 'U.S.', kind: 'supreme' }, 'S. Ct.'), F.finalCourt({ court: 'U.S.', kind: 'supreme' }, ''),
 		F.finalCourt({ court: 'C.C.P.A.', kind: 'ccpa' }, 'C.C.P.A.'), F.finalCourt({ court: 'C.C.P.A.', kind: 'ccpa' }, 'F.2d')],
 		['', '', 'U.S.', '', 'C.C.P.A.'], 'court omitted when the reporter identifies it');
+	eq(['US', 'U.S.', 'u.s.', 'S.Ct.', 'S. Ct.', 'L. Ed. 2d', 'LEd2d'].map(function (r) { return F.finalCourt({ court: 'U.S.', kind: 'supreme' }, r); }),
+		['', '', '', '', '', '', ''], 'Supreme Court reporter recognized however it is spelled ("US" in real libraries)');
+	eq(['F.3d', 'S.W.3d', 'N.E.3d', ''].map(function (r) { return F.finalCourt({ court: 'U.S.', kind: 'supreme' }, r); }),
+		['U.S.', 'U.S.', 'U.S.', 'U.S.'], 'other reporters keep the court');
+	eq(F.finalCourt({ court: 'C.C.P.A.', kind: 'ccpa' }, 'CCPA'), '', 'CCPA reporter spelled without dots');
 
 	// ---- typed-out courts (values seen in real libraries, typos included)
 	var tx = function (t) { var r = F.normalizeCourtText(t); return r ? r.court : null; };
@@ -59,6 +64,12 @@ new Function('HICITE_TEST', 'return (async () => {' + src + '})()')(true).then(f
 	eq(ch(plan({ court: 'supreme.court', volume: '567', page: '709', extra: blk('', '002us') }, { inferReporter: false })), { court: 'U.S.' }, 'inference can be turned off');
 	eq(ch(plan({ court: 'court.appeals', volume: '1', page: '2', extra: blk('', '005us:c2') })), { court: '2d Cir.' }, 'no inference for circuits (reporter ambiguous)');
 	eq(plan({ court: 'ecj', extra: blk('', 'eu.int:cjeu') }).notes[0].unresolved.indexOf('ecj') === 0, true, 'unresolved court reported, not changed');
+	eq(ch(plan({ reporter: 'US', court: 'Supreme Court', volume: '347', page: '483' }, { normalizeText: true })), { court: '' }, 'typed "Supreme Court" + reporter "US": court omitted, reporter left as typed');
+	var amb = plan({ reporter: 'S.W.3d', court: 'Supreme Court', volume: '1', page: '2' }, { normalizeText: true });
+	eq(ch(amb), {}, 'typed "Supreme Court" with a state reporter is NOT rewritten to U.S.');
+	eq(/ambiguous/.test(amb.notes[0].textCourtUnrecognized), true, 'ambiguous "Supreme Court" is reported');
+	eq(ch(plan({ court: 'Supreme Court', extra: blk('', '002us') }, { normalizeText: true })), { court: 'U.S.' }, 'typed "Supreme Court" confirmed by a us jurisdiction with no reporter');
+	eq(ch(plan({ court: 'Supreme Court' }, { normalizeText: true })), {}, 'typed "Supreme Court" with nothing to confirm it is left alone');
 	eq(ch(plan({ court: 'United States Court of Appeals, Federal Circuit' })), {}, 'typed-out court untouched by default');
 	eq(plan({ court: 'United States Court of Appeals, Federal Circuit' }).notes[0].suggested, 'Fed. Cir.', 'suggestion reported');
 	eq(ch(plan({ court: 'United States Court of Appeals, Federal Circuit' }, { normalizeText: true })), { court: 'Fed. Cir.' }, 'typed-out court rewritten when enabled');

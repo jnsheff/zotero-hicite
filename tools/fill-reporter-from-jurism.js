@@ -49,7 +49,7 @@ const ONLY_LIBRARY_IDS = null;        // e.g. [1] to restrict to specific librar
 const FILL_REPORTER_FROM_JURISM = true;  // copy the reporter out of the legacy block
 const INFER_REPORTER = true;             // Supreme Court + volume + page, no reporter -> "U.S."
 const TRANSLATE_COURT_IDS = true;        // "court.appeals" + jurisdiction -> "2d Cir." etc.
-const NORMALIZE_TEXT_COURTS = false;     // also rewrite typed-out courts ("... Federal Circuit" -> "Fed. Cir.")
+const NORMALIZE_TEXT_COURTS = false;    // also rewrite typed-out courts ("... Federal Circuit" -> "Fed. Cir.")
 
 const LOG_PREFIX = 'hicite-reporter-fill-';
 
@@ -120,7 +120,10 @@ function stateAbbrev(text) {
 }
 
 const DISTRICT_DESIGNATORS = { d: 'D.', nd: 'N.D.', sd: 'S.D.', ed: 'E.D.', wd: 'W.D.', md: 'M.D.', cd: 'C.D.' };
-const SUPREME_REPORTERS = new Set(['U.S.', 'S. Ct.', 'L. Ed.', 'L. Ed. 2d']);
+// U.S. Supreme Court reporters, compared ignoring dots, spaces and case, because real
+// libraries have "US", "U.S.", "S.Ct.", "S. Ct.", "L. Ed. 2d", ...
+const SUPREME_REPORTERS = new Set(['us', 'sct', 'led', 'led2d']);
+const isSupremeReporter = (r) => SUPREME_REPORTERS.has(String(r || '').toLowerCase().replace(/[.\s]/g, ''));
 
 function circuitAbbrev(n) {
 	n = Number(n);
@@ -211,8 +214,8 @@ function normalizeCourtText(text) {
 // Court field after taking the reporter into account: a court the reporter already
 // identifies is omitted (hicite: "may be omitted if the reporter uniquely identifies the court").
 function finalCourt(res, reporter) {
-	if (res.kind === 'supreme') return SUPREME_REPORTERS.has(reporter) ? '' : res.court;
-	if (res.kind === 'ccpa') return reporter === 'C.C.P.A.' ? '' : res.court;
+	if (res.kind === 'supreme') return isSupremeReporter(reporter) ? '' : res.court;
+	if (res.kind === 'ccpa') return String(reporter || '').toLowerCase().replace(/[.\s]/g, '') === 'ccpa' ? '' : res.court;
 	return res.court;
 }
 
@@ -251,7 +254,13 @@ function planCase(input, options) {
 	}
 	else if (courtOld) {
 		const res = normalizeCourtText(courtOld);
-		if (res) {
+		// A typed "Supreme Court" is only the U.S. Supreme Court if something confirms it
+		// (a Supreme Court reporter, or a legacy "us" jurisdiction and no reporter);
+		// otherwise it may well be a state's supreme court, so leave it alone.
+		if (res && res.kind === 'supreme' && !(isSupremeReporter(reporter) || (key === 'us' && !reporter))) {
+			notes.push({ textCourtUnrecognized: `${courtOld} (ambiguous: reporter "${reporter || 'none'}" does not confirm the U.S. Supreme Court)` });
+		}
+		else if (res) {
 			const nc = finalCourt(res, reporter);
 			if (nc !== courtOld) {
 				if (o.normalizeText) changes.court = { old: input.court, new: nc, how: 'typed-out name' };
