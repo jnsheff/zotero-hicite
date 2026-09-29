@@ -86,4 +86,15 @@ has(e, 'author={Josh {Dzieza}}', '"Last, First" read as inverted'); has(e, 'auth
 has(e, 'author={Meredith Filak {Rose}}', 'trailing ";" dropped, multi-word given name');
 has(entry(out, 'universityofcaliforniasandiego2022'), 'instauth={University of California, San Diego}', 'an institution with a comma stays an institution');
 
+// translators (hicite files them under "editor", labelled with edtype)
+e = entry(out, 'barthes1977');
+has(e, 'editor={Stephen {Heath}},', 'translator listed in the container'); has(e, 'edtype={trans.},', 'labelled "trans."'); hasNot(e, 'paren=', 'no parenthetical needed');
+e = entry(out, 'chekhov1977'); has(e, 'editor={Eugene K. {Bristow}},', 'editor who also translated: listed once'); has(e, 'edtype={ed. \\& trans.},', 'labelled "ed. & trans."'); eq((e.match(/editor=/g) || []).length, 1, 'the same person is not listed twice');
+e = entry(out, 'author2001'); eq((e.match(/    editor=/g) || []).length, 2, 'two editors, listed once each'); has(e, 'edtype={eds. \\& trans.},', 'plural label when several edited and translated');
+e = entry(out, 'writer1999'); has(e, 'editor={Ed {One}},', 'the editor'); has(e, 'paren={Tom Trans \\& Sue Two trans.},', 'a different translator goes in a parenthetical'); hasNot(e, 'edtype=', 'no role label needed');
+e = entry(out, 'scribe1990'); has(e, 'editor={Tom {Trans}},', 'translator of a book'); has(e, 'edtype={trans.},', 'labelled "trans." in a book');
+e = entry(out, 'composer1995'); has(e, 'editor={Ed {Reviser}},', 'editor of a book'); has(e, 'paren={Tom Renderer trans.},', 'a book\'s different translator in a parenthetical');
+e = entry(out, 'brants2007'); hasNot(e, 'edtype=', 'editors alone need no label'); hasNot(e, 'paren=', 'and no parenthetical');
+e = entry(run({ maxAuthors: '1' }, {}, items.filter(function (i) { return i.title === 'Editor and different translators'; })), 'writer1999'); has(e, 'Sue Two trans.', 'the author cap does not shorten translators');
+
 print(errors.length ? 'FAIL\n' + errors.join('\n') : 'translator OK (preprints, containers, names, urls, cases, keys, each setting)');

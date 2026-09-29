@@ -76,6 +76,11 @@ To build it yourself: `make xpi`.
 | Statute (code + section) | `statcode` |
 | Web Page, Blog Post and everything else | `website` |
 
+Editors and translators (books and containers): hicite keeps them in one `editor` list with an `edtype` role
+label. Translators alone are listed with `edtype={trans.}`; the same people who edited and translated get
+`ed. & trans.` (`eds. & trans.` for several); a translator who is not the editor goes in a parenthetical, since
+hicite cannot label two different roles in one reference.
+
 Other export rules: with an *Authors listed* limit set, a longer author list is cut off and the last name kept
 gets hicite's " et al." (`author={Cy {Gamma} et al.}`); editors are never cut. A Short Title becomes the short-form name (`inline`); single-field names that look
 like people are exported as people (with particles and suffixes: `Bart {van Merrienboer}`,

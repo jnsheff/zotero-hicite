@@ -710,5 +710,150 @@
    }
   ],
   "date": "2018"
+ },
+ {
+  "itemType": "bookSection",
+  "title": "The Death of the Author",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Roland",
+    "lastName": "Barthes"
+   },
+   {
+    "creatorType": "translator",
+    "firstName": "Stephen",
+    "lastName": "Heath"
+   }
+  ],
+  "bookTitle": "Image, Music, Text",
+  "date": "1977",
+  "pages": "142-148"
+ },
+ {
+  "itemType": "bookSection",
+  "title": "Uncle Vanya",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Anton",
+    "lastName": "Chekhov"
+   },
+   {
+    "creatorType": "editor",
+    "firstName": "Eugene K.",
+    "lastName": "Bristow"
+   },
+   {
+    "creatorType": "translator",
+    "firstName": "Eugene K.",
+    "lastName": "Bristow"
+   }
+  ],
+  "bookTitle": "Anton Chekhov's Plays",
+  "date": "1977",
+  "pages": "1-60"
+ },
+ {
+  "itemType": "bookSection",
+  "title": "Two editors who translated",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Uma",
+    "lastName": "Author"
+   },
+   {
+    "creatorType": "editor",
+    "firstName": "Eve",
+    "lastName": "Both"
+   },
+   {
+    "creatorType": "editor",
+    "firstName": "Sam",
+    "lastName": "Also"
+   },
+   {
+    "creatorType": "translator",
+    "firstName": "Sam",
+    "lastName": "Also"
+   },
+   {
+    "creatorType": "translator",
+    "firstName": "Eve",
+    "lastName": "Both"
+   }
+  ],
+  "bookTitle": "A Shared Volume",
+  "date": "2001",
+  "pages": "3-9"
+ },
+ {
+  "itemType": "bookSection",
+  "title": "Editor and different translators",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Vic",
+    "lastName": "Writer"
+   },
+   {
+    "creatorType": "editor",
+    "firstName": "Ed",
+    "lastName": "One"
+   },
+   {
+    "creatorType": "translator",
+    "firstName": "Tom",
+    "lastName": "Trans"
+   },
+   {
+    "creatorType": "translator",
+    "firstName": "Sue",
+    "lastName": "Two"
+   }
+  ],
+  "bookTitle": "A Translated Volume",
+  "date": "1999",
+  "pages": "7-20"
+ },
+ {
+  "itemType": "book",
+  "title": "A translated book",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Ann",
+    "lastName": "Scribe"
+   },
+   {
+    "creatorType": "translator",
+    "firstName": "Tom",
+    "lastName": "Trans"
+   }
+  ],
+  "date": "1990"
+ },
+ {
+  "itemType": "book",
+  "title": "An edited and translated book",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Bo",
+    "lastName": "Composer"
+   },
+   {
+    "creatorType": "editor",
+    "firstName": "Ed",
+    "lastName": "Reviser"
+   },
+   {
+    "creatorType": "translator",
+    "firstName": "Tom",
+    "lastName": "Renderer"
+   }
+  ],
+  "date": "1995"
  }
 ]

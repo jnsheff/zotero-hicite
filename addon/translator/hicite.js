@@ -326,10 +326,10 @@ Def.prototype.set = function (k, v) {
 	if (v !== '' && v !== undefined && v !== null) this.raw(k, tex(v));
 	return this;
 };
-// Names of one kind of creator. With a positive `cap`, at most that many are listed and, when
+// Names from a list of creators. With a positive `cap`, at most that many are listed and, when
 // some are left out, the last one listed gets " et al." (hicite's syntax for a shortened list).
-Def.prototype.names = function (item, ctype, personal, inst, cap) {
-	var self = this, cs = creatorsOf(item, ctype), n = cs.length;
+Def.prototype.namesOf = function (cs, personal, inst, cap) {
+	var self = this, n = cs.length;
 	var limit = cap > 0 && n > cap ? cap : n;
 	cs.slice(0, limit).forEach(function (c, i) {
 		var etal = limit < n && i === limit - 1 ? ' et al.' : '';
@@ -338,6 +338,35 @@ Def.prototype.names = function (item, ctype, personal, inst, cap) {
 		else if (c.name || c.lastName) self.raw(inst, tex(c.name || c.lastName) + etal);
 	});
 	return this;
+};
+Def.prototype.names = function (item, ctype, personal, inst, cap) {
+	return this.namesOf(creatorsOf(item, ctype), personal, inst, cap);
+};
+
+// Plain-text name for a parenthetical: "Tom Trans", or an institution's name.
+function displayName(c) {
+	var p = personParts(c);
+	return p ? p.given + ' ' + p.family + (p.suffix ? ' ' + p.suffix : '') : (c.name || c.lastName || '');
+}
+function joinNames(list) {
+	return list.length < 3 ? list.join(' & ') : list.slice(0, -1).join(', ') + ' & ' + list[list.length - 1];
+}
+
+// Editors and translators. hicite has one list for both ("editor", with an `edtype` role label):
+//  - translators only: they go in that list, labelled "trans."
+//  - the same people edited and translated: "ed. & trans." (or "eds. & trans.")
+//  - different people: editors as usual, translators in a parenthetical
+// (hicite does not support a different editor and translator in one reference; the parenthetical
+// is the closest citation form.)
+Def.prototype.roles = function (item) {
+	var eds = creatorsOf(item, 'editor'), trs = creatorsOf(item, 'translator');
+	if (!trs.length) return this.namesOf(eds, 'editor', 'insted');
+	var id = function (c) { return slug(displayName(c)); };
+	if (!eds.length) return this.namesOf(trs, 'editor', 'insted').set('edtype', 'trans.');
+	var same = eds.length === trs.length && eds.every(function (e) { return trs.some(function (t) { return id(t) === id(e); }); });
+	this.namesOf(eds, 'editor', 'insted');
+	if (same) return this.set('edtype', eds.length > 1 ? 'eds. & trans.' : 'ed. & trans.');
+	return this.set('paren', joinNames(trs.map(displayName)) + ' trans.');
 };
 Def.prototype.inline = function (item) {
 	return this.set('inline', inlineName(item));
@@ -367,7 +396,7 @@ function maxAuthors() {
 function container(item, titleFields, opts) {
 	var inner = new Def('book', '');
 	inner.names(item, 'bookAuthor', 'author', 'instauth', maxAuthors())
-		.names(item, 'editor', 'editor', 'insted')
+		.roles(item)
 		.set('title', pick.apply(null, [item].concat(titleFields)))
 		.set('edition', edition(item))
 		.set('publisher', includePublisher() ? pick(item, 'publisher') : '');
@@ -394,7 +423,7 @@ function emit(item, key) {
 		case 'book':
 			d = new Def('book', key);
 			d.names(item, 'author', 'author', 'instauth', maxAuthors())
-				.names(item, 'editor', 'editor', 'insted')
+				.roles(item)
 				.set('title', pick(item, 'title'))
 				.set('vol', pick(item, 'volume'))
 				.set('edition', edition(item))
@@ -474,7 +503,7 @@ function emit(item, key) {
 				// \defworkingpaper requires a number; unnumbered reports are cited like books
 				d = new Def('book', key);
 				d.names(item, 'author', 'author', 'instauth', maxAuthors())
-					.names(item, 'editor', 'editor', 'insted')
+					.roles(item)
 					.set('title', pick(item, 'title'))
 					.set('publisher', includePublisher() ? pick(item, 'institution', 'publisher') : '')
 					.set('year', yearOf(item) || 'nd')
