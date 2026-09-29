@@ -1,0 +1,189 @@
+[
+ {
+  "itemType": "journalArticle",
+  "title": "Government in Ignorance of the Law: A Plea for Better Publication",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Erwin N.",
+    "lastName": "Griswold"
+   }
+  ],
+  "publicationTitle": "Harvard Law Review",
+  "volume": "48",
+  "pages": "198-230",
+  "date": "1934-12-01"
+ },
+ {
+  "itemType": "book",
+  "title": "Nimmer on Copyright & Related Things",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Melville B.",
+    "lastName": "Nimmer"
+   },
+   {
+    "creatorType": "author",
+    "firstName": "David",
+    "lastName": "Nimmer"
+   }
+  ],
+  "publisher": "LexisNexis",
+  "date": "2014",
+  "edition": "2nd ed."
+ },
+ {
+  "itemType": "bookSection",
+  "title": "A Chapter, With a Comma",
+  "bookTitle": "Edited Volume",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Ann",
+    "lastName": "Écrivain"
+   },
+   {
+    "creatorType": "editor",
+    "firstName": "Ed",
+    "lastName": "Itor"
+   }
+  ],
+  "pages": "45-60",
+  "date": "2010"
+ },
+ {
+  "itemType": "newspaperArticle",
+  "title": "How Companies Learn Your Secrets",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Charles",
+    "lastName": "Duhigg"
+   }
+  ],
+  "publicationTitle": "New York Times Magazine",
+  "pages": "MM30",
+  "date": "2016-01-01"
+ },
+ {
+  "itemType": "webpage",
+  "title": "Nutella: How the World Went Nuts",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Dany",
+    "lastName": "Mitzman"
+   }
+  ],
+  "websiteTitle": "BBC News",
+  "date": "2014-05-18",
+  "url": "http://www.bbc.com/news/a%20b?x=1&y=2"
+ },
+ {
+  "itemType": "case",
+  "caseName": "Wheaton v. Peters",
+  "reporter": "U.S.",
+  "reporterVolume": "33",
+  "firstPage": "591",
+  "date": "1834"
+ },
+ {
+  "itemType": "report",
+  "title": "Overview of FTC Actions",
+  "creators": [
+   {
+    "creatorType": "author",
+    "name": "Federal Trade Commission",
+    "fieldMode": 1
+   }
+  ],
+  "institution": "FTC",
+  "date": "2019-06"
+ },
+ {
+  "itemType": "statute",
+  "nameOfAct": "Patent Act",
+  "code": "U.S.C.",
+  "codeNumber": "35",
+  "section": "101"
+ },
+ {
+  "itemType": "thesis",
+  "title": "A Dissertation",
+  "thesisType": "Ph.D. dissertation",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Jo",
+    "lastName": "Doe"
+   }
+  ],
+  "date": "2001"
+ },
+ {
+  "itemType": "journalArticle",
+  "title": "Another",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Erwin",
+    "lastName": "Griswold"
+   }
+  ],
+  "publicationTitle": "Yale Law Journal",
+  "volume": "1",
+  "pages": "1",
+  "date": "1934",
+  "extra": "Citation Key: griswold1934"
+ },
+ {
+  "itemType": "journalArticle",
+  "title": "50% of C# & R_2: The $5 Question ~ a^b",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "María José",
+    "lastName": "de la Peña"
+   }
+  ],
+  "publicationTitle": "J. of \"Odd\" Things",
+  "volume": "7",
+  "pages": "e12-e19",
+  "date": "2020-03-15"
+ },
+ {
+  "itemType": "webpage",
+  "title": "A page with a fragment",
+  "websiteTitle": "Example",
+  "date": "2021",
+  "url": "https://example.com/a_b#frag?q=100%25"
+ },
+ {
+  "itemType": "case",
+  "caseName": "In re Smith",
+  "docketNumber": "No. 12-345",
+  "court": "D. Mass.",
+  "date": "2013-05-01"
+ },
+ {
+  "itemType": "book",
+  "title": "The Untitled Anonymous Work",
+  "date": "1999"
+ },
+ {
+  "itemType": "journalArticle",
+  "title": "Braces {Protected} and {Unbalanced",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Al",
+    "lastName": "Anderson"
+   }
+  ],
+  "publicationTitle": "Yale Law Journal",
+  "volume": "100",
+  "pages": "1",
+  "date": "2000"
+ }
+]

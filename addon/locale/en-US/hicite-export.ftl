@@ -1,0 +1,14 @@
+hicite-menu-pin =
+    .label = hicite: Pin Citation Key
+hicite-menu-regenerate =
+    .label = hicite: Regenerate Citation Key
+hicite-menu-copy =
+    .label = hicite: Copy Citation Keys
+hicite-menu-autoexport-start =
+    .label = hicite: Auto-Export to File…
+hicite-menu-autoexport-stop =
+    .label = hicite: Stop Auto-Export
+hicite-menu-autoexport-now =
+    .label = hicite: Export Now
+hicite-menu-autoexport-run-all =
+    .label = hicite: Run All Auto-Exports Now

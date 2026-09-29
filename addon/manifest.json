@@ -1,0 +1,14 @@
+{
+  "manifest_version": 2,
+  "name": "hicite Export for Zotero",
+  "version": "0.3.1",
+  "description": "Pins stable citation keys and exports (and auto-exports) references as hicite reference definitions, in the manner of Better BibTeX.",
+  "applications": {
+    "zotero": {
+      "id": "hicite-export@zotero.local",
+      "update_url": "https://localhost/hicite-export/updates.json",
+      "strict_min_version": "8.999",
+      "strict_max_version": "10.0.*"
+    }
+  }
+}
