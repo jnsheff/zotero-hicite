@@ -74,6 +74,14 @@ since Bluebook/Indigo Book style normally omits them. Jobs made from the Export
 dialog keep that choice (`includePublisher` in the job JSON in the
 `extensions.hicite-export.autoExports` preference).
 
+## Migrating from Juris-M
+
+Juris-M kept a case's reporter (e.g. `F.3d`) in Extra as an `mlzsync1:` block, which this
+add-on does not read. `tools/fill-reporter-from-jurism.js` copies it into Zotero's Reporter
+field. It is meant to be pasted into Tools > Developer > Run JavaScript; it defaults to a
+dry run, skips shared group libraries unless told otherwise, refuses to apply without a
+backup confirmation, and can be reverted. Read the comment at the top of the file first.
+
 ## Layout
 
 ```
@@ -81,7 +89,8 @@ addon/
   manifest.json          plugin manifest (Zotero 9-10)
   bootstrap.js           lifecycle shim
   hicite-export.js       keys, menus (Zotero.MenuManager), auto-export
-  translator/hicite.js   the export translator (installed into Zotero's translators dir)
+  translator/hicite.js   the export translator
+tools/                   release helper and the one-off Juris-M migration script (installed into Zotero's translators dir)
   locale/en-US/*.ftl     menu labels
   prefs.js               default prefs
 test/                    see below
