@@ -246,5 +246,288 @@
   ],
   "date": "2018",
   "extra": "Citation Key: 2018"
+ },
+ {
+  "itemType": "preprint",
+  "title": "Attention Is All You Need",
+  "creators": [
+   {
+    "creatorType": "author",
+    "name": "Ashish Vaswani",
+    "fieldMode": 1,
+    "lastName": "Ashish Vaswani",
+    "firstName": ""
+   },
+   {
+    "creatorType": "author",
+    "name": "Noam Shazeer",
+    "fieldMode": 1,
+    "lastName": "Noam Shazeer",
+    "firstName": ""
+   }
+  ],
+  "repository": "arXiv",
+  "archiveID": "arXiv:1706.03762",
+  "date": "2023-08-02",
+  "url": "http://arxiv.org/abs/1706.03762",
+  "shortTitle": "Attention"
+ },
+ {
+  "itemType": "preprint",
+  "title": "Number only in the URL",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Ann",
+    "lastName": "Author"
+   }
+  ],
+  "date": "2019-09-03",
+  "url": "https://arxiv.org/abs/1909.01285v2"
+ },
+ {
+  "itemType": "preprint",
+  "title": "An SSRN paper",
+  "creators": [
+   {
+    "creatorType": "author",
+    "name": "Nicholas Bednar",
+    "fieldMode": 1,
+    "lastName": "Nicholas Bednar",
+    "firstName": ""
+   }
+  ],
+  "repository": "Social Science Research Network",
+  "date": "April 28, 2026",
+  "url": "https://papers.ssrn.com/abstract=6525800"
+ },
+ {
+  "itemType": "preprint",
+  "title": "A preprint with no identifier at all",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Lo",
+    "lastName": "Wen"
+   }
+  ],
+  "date": "2020",
+  "url": "https://example.org/x"
+ },
+ {
+  "itemType": "conferencePaper",
+  "title": "Large Language Models in Machine Translation",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Thorsten",
+    "lastName": "Brants"
+   },
+   {
+    "creatorType": "editor",
+    "firstName": "Jason",
+    "lastName": "Eisner"
+   }
+  ],
+  "proceedingsTitle": "Proceedings of EMNLP-CoNLL",
+  "date": "June 2007",
+  "pages": "858-867",
+  "url": "https://aclanthology.org/D07-1090/"
+ },
+ {
+  "itemType": "conferencePaper",
+  "title": "A talk with no pages",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Cy",
+    "lastName": "Talk"
+   }
+  ],
+  "proceedingsTitle": "Some Workshop",
+  "date": "2001",
+  "url": "http://proceedings.mlr.press/r3/x.html"
+ },
+ {
+  "itemType": "encyclopediaArticle",
+  "title": "Behaviorism",
+  "creators": [
+   {
+    "creatorType": "author",
+    "name": "George Graham",
+    "fieldMode": 1,
+    "lastName": "George Graham",
+    "firstName": ""
+   }
+  ],
+  "encyclopediaTitle": "The Stanford Encyclopedia of Philosophy",
+  "date": "2023",
+  "url": "https://plato.stanford.edu/entries/behaviorism/"
+ },
+ {
+  "itemType": "webpage",
+  "title": "How the AI Boom Went Bust",
+  "creators": [
+   {
+    "creatorType": "author",
+    "name": "Thomas Haigh",
+    "fieldMode": 1,
+    "lastName": "Thomas Haigh",
+    "firstName": ""
+   }
+  ],
+  "websiteTitle": "Communications of the ACM",
+  "date": "January 26, 2024",
+  "url": "https://cacm.acm.org/x"
+ },
+ {
+  "itemType": "webpage",
+  "title": "Memory and New Controls",
+  "creators": [
+   {
+    "creatorType": "author",
+    "name": "OpenAI",
+    "fieldMode": 1,
+    "lastName": "OpenAI",
+    "firstName": ""
+   }
+  ],
+  "websiteTitle": "OpenAI",
+  "date": "March 13, 2024",
+  "url": "https://openai.com/x"
+ },
+ {
+  "itemType": "webpage",
+  "title": "Consumer Terms",
+  "creators": [
+   {
+    "creatorType": "author",
+    "name": "Anthropic PBC",
+    "fieldMode": 1,
+    "lastName": "Anthropic PBC",
+    "firstName": ""
+   }
+  ],
+  "websiteTitle": "Anthropic",
+  "date": "October 8, 2025",
+  "url": "https://www.anthropic.com/legal"
+ },
+ {
+  "itemType": "webpage",
+  "title": "Statement on AI Extinction Risk",
+  "creators": [
+   {
+    "creatorType": "author",
+    "name": "Center for AI Safety",
+    "fieldMode": 1,
+    "lastName": "Center for AI Safety",
+    "firstName": ""
+   }
+  ],
+  "websiteTitle": "Something Else",
+  "date": "May 30, 2023",
+  "url": "https://aistatement.com"
+ },
+ {
+  "itemType": "journalArticle",
+  "title": "Person with particle and suffix",
+  "creators": [
+   {
+    "creatorType": "author",
+    "name": "Bart van Merrienboer",
+    "fieldMode": 1,
+    "lastName": "Bart van Merrienboer",
+    "firstName": ""
+   },
+   {
+    "creatorType": "author",
+    "name": "Dean Edmonds Jr.",
+    "fieldMode": 1,
+    "lastName": "Dean Edmonds Jr.",
+    "firstName": ""
+   }
+  ],
+  "publicationTitle": "J. of Things",
+  "volume": "1",
+  "pages": "5",
+  "date": "2018"
+ },
+ {
+  "itemType": "journalArticle",
+  "title": "Online only article",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "On",
+    "lastName": "Line"
+   }
+  ],
+  "publicationTitle": "Web Journal",
+  "date": "2024",
+  "url": "https://example.org/online"
+ },
+ {
+  "itemType": "journalArticle",
+  "title": "Print article with a URL",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Print",
+    "lastName": "Er"
+   }
+  ],
+  "publicationTitle": "Print Journal",
+  "volume": "12",
+  "pages": "100-120",
+  "date": "2001",
+  "url": "https://jstor.org/x"
+ },
+ {
+  "itemType": "case",
+  "caseName": "Metro-Goldwyn-Mayer Studios Inc. v. Grokster, Ltd.",
+  "shortTitle": "Grokster",
+  "reporter": "U.S.",
+  "reporterVolume": "545",
+  "firstPage": "913",
+  "dateDecided": "2005-06-27",
+  "court": ""
+ },
+ {
+  "itemType": "case",
+  "caseName": "Garcia v Character Technologies Inc.",
+  "reporter": "F.Supp.3d",
+  "reporterVolume": "785",
+  "firstPage": "1157",
+  "court": "M.D. Fla.",
+  "dateDecided": "2025",
+  "url": "https://example.org/ignored-because-reporter"
+ },
+ {
+  "itemType": "case",
+  "caseName": "Doe v. GitHub, Inc.",
+  "docketNumber": "24-7700",
+  "court": "9th Cir.",
+  "dateDecided": "September 16, 2026",
+  "url": "https://cdn.ca9.uscourts.gov/24-7700.pdf"
+ },
+ {
+  "itemType": "case",
+  "caseName": "In re Nimitz Technologies LLC",
+  "docketNumber": "2023-103",
+  "court": "Fed. Cir.",
+  "dateDecided": "2022-12-08"
+ },
+ {
+  "itemType": "book",
+  "title": "Language and Responsibility: Based on Conversations with Mitsou Ronat",
+  "shortTitle": "Language and Responsibility",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Noam",
+    "lastName": "Chomsky"
+   }
+  ],
+  "date": "1979"
  }
 ]

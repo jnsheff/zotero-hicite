@@ -3,6 +3,9 @@
 # hicite is masked by pointing TEXMFHOME away). Fails on any TeX error.
 cd "$(dirname "$0")"
 [ -d ctan-hicite ] || sh fetch-ctan-hicite.sh || exit 1
+# cite every reference the translator produced, so anything hicite rejects fails the build
+sed -n 's/^\\def[a-z]*{\([^}]*\)}{.*/\\sentence{\1}./p' out.tex > cites.tex
+[ -s cites.tex ] || { echo "no references found in out.tex (run test/run-jxa.js first)"; exit 1; }
 export TEXMFHOME=/nonexistent TEXINPUTS="$PWD/ctan-hicite:"
 pdflatex -interaction=nonstopmode -halt-on-error doc.tex >log.txt 2>&1 && \
 pdflatex -interaction=nonstopmode -halt-on-error doc.tex >log.txt 2>&1

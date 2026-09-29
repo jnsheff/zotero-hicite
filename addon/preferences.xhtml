@@ -1,0 +1,51 @@
+<!-- hicite settings pane. Parsed by Zotero as an XUL fragment: XUL elements are unprefixed and
+     HTML elements use the html: prefix. `preference` attributes bind a control to a preference
+     (full key); the same keys are read by the export translator and the add-on. -->
+<vbox id="hicite-prefs" onload="Zotero.HiCitePrefs.init()">
+	<groupbox>
+		<html:h2>Citation keys</html:h2>
+		<hbox align="center">
+			<label value="Key source:" control="hicite-keySource"/>
+			<menulist id="hicite-keySource" native="true" preference="extensions.zotero.translators.hicite.keySource">
+				<menupopup>
+					<menuitem label="Generate my own (last name and year)" value="own"/>
+					<menuitem label="Use Better BibTeX's key when hicite can use it" value="adopt"/>
+				</menupopup>
+			</menulist>
+		</hbox>
+		<hbox align="center">
+			<label value="Case keys:" control="hicite-caseKeys"/>
+			<menulist id="hicite-caseKeys" native="true" preference="extensions.zotero.translators.hicite.caseKeys">
+				<menupopup>
+					<menuitem label="Short Title, or else the first party" value="shorttitle"/>
+					<menuitem label="First word of the name, plus the year" value="nameyear"/>
+				</menupopup>
+			</menulist>
+		</hbox>
+		<description>
+			Keys are pinned in each item's Extra field the first time they are needed. A changed setting applies to
+			items that have no key yet; to re-key existing items, right-click them (or a collection) and choose
+			"hicite: Regenerate Citation Key" or "hicite: Regenerate Case Keys".
+		</description>
+	</groupbox>
+
+	<groupbox>
+		<html:h2>Export</html:h2>
+		<checkbox label="Use an item's Short Title as its short-form name (inline)"
+			preference="extensions.zotero.translators.hicite.shortTitleInline"/>
+		<checkbox label="Leave out a website's title when it repeats the author"
+			preference="extensions.zotero.translators.hicite.omitRedundantSite"/>
+		<checkbox label="Include URLs (kept for web sources; dropped for works with a print citation)"
+			preference="extensions.zotero.translators.hicite.includeUrls"/>
+		<description>Changes apply to the next export and re-run your auto-exports.</description>
+	</groupbox>
+
+	<groupbox>
+		<html:h2>Auto-exports</html:h2>
+		<vbox id="hicite-jobs"/>
+		<description>
+			To add one, right-click a library or collection and choose "hicite: Auto-Export to File…", or tick
+			"Keep updated" when exporting with the hicite format.
+		</description>
+	</groupbox>
+</vbox>

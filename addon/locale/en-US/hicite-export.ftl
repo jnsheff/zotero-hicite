@@ -10,5 +10,7 @@ hicite-menu-autoexport-stop =
     .label = hicite: Stop Auto-Export
 hicite-menu-autoexport-now =
     .label = hicite: Export Now
+hicite-menu-regenerate-cases =
+    .label = hicite: Regenerate Case Keys
 hicite-menu-autoexport-run-all =
     .label = hicite: Run All Auto-Exports Now

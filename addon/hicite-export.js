@@ -5,6 +5,7 @@
  *    place Better BibTeX uses), with a/b/c disambiguation
  *  - item / collection / Tools menus via Zotero.MenuManager
  *  - auto-export: keeps .tex files up to date as the library changes
+ *  - a Settings pane (preferences.xhtml) for the export and key settings
  *
  * Written against the Zotero 8/9 plugin APIs.
  */
@@ -27,6 +28,17 @@ HiCite = {
 	PREF: 'extensions.hicite-export.autoExports',
 	DEBOUNCE_MS: 3000,
 
+	// Settings shared with the export translator (which reads them with Zotero.getHiddenPref,
+	// i.e. the prefs extensions.zotero.translators.hicite.*). Defaults also live in prefs.js and
+	// in the translator's header; keep the three in step.
+	SETTINGS: { keySource: 'own', caseKeys: 'shorttitle', shortTitleInline: true, omitRedundantSite: true, includeUrls: true },
+	settingObservers: [],
+
+	pref(name) {
+		let v = Zotero.Prefs.get('translators.hicite.' + name);
+		return v === undefined || v === null ? this.SETTINGS[name] : v;
+	},
+
 	// ------------------------------------------------------------- keys
 	// Keep baseKey() in sync with translator/hicite.js.
 
@@ -40,24 +52,71 @@ HiCite = {
 		return String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
 	},
 
+	// Words that mark an institution rather than a person, and name particles. Keep in sync with
+	// translator/hicite.js (test/parity-jxa.js compares the two).
+	ORG_WORDS: /\b(inc|incorporated|llc|ltd|limited|corp|corporation|company|co|foundation|institute|university|college|commission|committee|council|office|department|dept|agency|center|centre|association|society|group|labs?|team|board|bureau|government|congress|senate|administration|organization|organisation|conference|legislatures?|initiative|project|network|press|news|review|journal|policy|division|ministry|union|alliance|consortium|forum|trust|fund|bank|pbc|ai|hai|gov|technologies|systems|research|library|museum|school|service|services|international|global)\b/i,
+	PARTICLES: /^(van|von|de|der|den|di|da|del|della|la|le|du|bin|ibn|al|el|ter|ten)$/i,
+	CORP_SUFFIX: /[,\s]+(inc|incorporated|llc|l\.l\.c|ltd|limited|corp|corporation|co|company|plc|pbc|lp|llp|gmbh|ag|sa)\.?$/i,
+
+	// A single-field name (Zotero's fieldMode 1) is a person if it is 2-5 capitalized words with no
+	// institution words, digits, commas or all-caps tokens.
+	looksLikePerson(name) {
+		name = String(name || '').trim();
+		let t = name.split(/\s+/);
+		if (t.length < 2 || t.length > 5) return false;
+		if (/[,;&\d]/.test(name) || this.ORG_WORDS.test(name) || /^the\s/i.test(name)) return false;
+		for (let w of t) {
+			if (w.length > 1 && w === w.toUpperCase() && /[A-Z]/.test(w) && !/^[A-Z]\.?$/.test(w)) return false;
+			if (!(/^[A-Z\u00C0-\u00DD]/.test(w) || this.PARTICLES.test(w) || /^st\.?$/i.test(w))) return false;
+		}
+		return true;
+	},
+
+	splitPerson(name) {
+		let t = String(name).trim().split(/\s+/), suffix = '';
+		if (t.length > 2 && /^(jr|sr|ii|iii|iv)\.?$/i.test(t[t.length - 1])) suffix = t.pop();
+		let family = [t.pop()];
+		while (t.length > 1 && this.PARTICLES.test(t[t.length - 1])) family.unshift(t.pop());
+		return { given: t.join(' '), family: family.join(' '), suffix };
+	},
+
+	// The name a key is built from: the family name of a person, the whole name of an institution.
+	creatorFamily(c) {
+		let single = c.fieldMode === 1 || !c.firstName;
+		if (!single) return c.lastName || '';
+		let nm = c.lastName || '';
+		return this.looksLikePerson(nm) ? this.splitPerson(nm).family : nm;
+	},
+
+	firstWord(text) {
+		for (let w of String(text).split(/\s+/)) {
+			if (!this.STOPWORDS.test(w) && this.slug(w)) return w;
+		}
+		return '';
+	},
+
+	// Cases: the Short Title if there is one, else the first party (without "Inc.", "LLC", ...);
+	// or, with the "name and year" setting, the first word of the name plus the year.
 	baseKey(item) {
 		let name = '';
 		if (item.itemType === 'case') {
-			for (let w of (item.getField('caseName') || item.getField('title') || '').split(/\s+/)) {
-				if (!this.STOPWORDS.test(w)) { name = w; break; }
+			let caseName = item.getField('caseName') || item.getField('title') || '';
+			if (this.pref('caseKeys') === 'shorttitle') {
+				let m = /^(.+?)\s+v\.?\s+.+$/i.exec(caseName.trim());
+				let party = m ? m[1] : caseName.trim();
+				let key = this.slug(item.getField('shortTitle')) || this.slug(party.replace(this.CORP_SUFFIX, '')) || this.slug(party);
+				key = key || 'case';
+				return /^[a-z]/.test(key) ? key : 'ref' + key;
 			}
+			name = this.firstWord(caseName);
 		}
 		else {
 			let creators = item.getCreators();
 			let primary = Zotero.CreatorTypes.getPrimaryIDForType(item.itemTypeID);
 			let c = creators.find(x => x.creatorTypeID === primary) || creators[0];
-			if (c) name = c.lastName || '';
+			if (c) name = this.creatorFamily(c);
 		}
-		if (!this.slug(name)) {
-			for (let w of (item.getField('title') || '').split(/\s+/)) {
-				if (!this.STOPWORDS.test(w) && this.slug(w)) { name = w; break; }
-			}
-		}
+		if (!this.slug(name)) name = this.firstWord(item.getField('title') || '');
 		let key = this.slug(name) || 'ref';
 		if (!/^[a-z]/.test(key)) key = 'ref' + key;
 		// 'year' handles types whose date field has another name (dateDecided, ...)
@@ -121,14 +180,16 @@ HiCite = {
 		return base + item.key.toLowerCase();
 	},
 
-	// Pin a citation key in Extra. A usable existing key is kept; otherwise a
-	// usable native key (e.g. Better BibTeX's) is adopted so that .bib and hicite
+	// Pin a citation key in Extra. A usable existing key is kept; otherwise, if the key source
+	// setting is "adopt", a usable native key (Better BibTeX's) is adopted so that .bib and hicite
 	// keys agree; otherwise one is generated. `force` always generates.
 	async pin(item, { force = false } = {}) {
 		if (!item.isRegularItem() || item.isFeedItem) return '';
 		let existing = this.getKey(item);
 		if (existing && !force) return existing;
-		let key = (!force && this.getNativeKey(item)) || await this.uniqueKey(item);
+		// Better BibTeX's key is only adopted when the "adopt" key source is selected.
+		let native = !force && this.pref('keySource') === 'adopt' ? this.getNativeKey(item) : '';
+		let key = native || await this.uniqueKey(item);
 		if (key === existing) return key;
 		this.setKey(item, key);
 		// skipNotifier: other add-ons must not react to this edit. Better BibTeX, for one, can be
@@ -418,6 +479,19 @@ HiCite = {
 		return keys;
 	},
 
+	// Regenerate the citation keys of every case in a library or collection (including
+	// sub-collections), e.g. after changing the case-key setting.
+	async regenerateCaseKeys(scope) {
+		let cases = (await this.scopeItems(scope)).filter(i => i.itemType === 'case');
+		let changed = 0;
+		for (let item of cases) {
+			let before = this.getKey(item);
+			if (await this.pin(item, { force: true }) !== before) changed++;
+		}
+		this.schedule(new Set([scope.libraryID]));
+		return { total: cases.length, changed };
+	},
+
 	registerMenus() {
 		let reg = (target, menus) => {
 			let id = Zotero.MenuManager.registerMenu({
@@ -466,6 +540,14 @@ HiCite = {
 				onCommand: (event, ctx) => this.enqueue([this.jobFor(single(ctx)).id]),
 			},
 			{
+				menuType: 'menuitem', l10nID: 'hicite-menu-regenerate-cases',
+				onShowing: (event, ctx) => ctx.setVisible(!!single(ctx)),
+				onCommand: async (event, ctx) => {
+					let r = await this.regenerateCaseKeys(single(ctx));
+					this.notify(`Regenerated the keys of ${r.changed} of ${r.total} cases`);
+				},
+			},
+			{
 				menuType: 'menuitem', l10nID: 'hicite-menu-autoexport-stop',
 				onShowing: (event, ctx) => { let s = single(ctx); ctx.setVisible(!!s && !!this.jobFor(s)); },
 				onCommand: (event, ctx) => this.stopAutoExport(single(ctx)),
@@ -508,6 +590,7 @@ HiCite = {
 
 		this.registerMenus();
 		this.patchExport();
+		this.registerSettings();
 		this.observerID = Zotero.Notifier.registerObserver({
 			notify: (event, type, ids) => this.onNotify(event, type, ids),
 		}, ['item', 'collection', 'collection-item'], 'hicite-export');
@@ -516,8 +599,28 @@ HiCite = {
 		Zotero.uiReadyPromise.then(() => this.schedule(null));
 	},
 
+	// The Settings pane, and re-running the auto-exports when a setting changes.
+	async registerSettings() {
+		// one observer per key: Zotero.Prefs observers match an exact pref name
+		for (let name of [...Object.keys(this.SETTINGS), 'refresh']) {
+			this.settingObservers.push(Zotero.Prefs.registerObserver('translators.hicite.' + name, () => this.schedule(null)));
+		}
+		try {
+			await Zotero.PreferencePanes.register({
+				pluginID: this.id,
+				src: this.rootURI + 'preferences.xhtml',
+				label: 'hicite',
+				scripts: [this.rootURI + 'preferences.js'],
+			});
+		}
+		catch (e) { Zotero.logError(e); }
+	},
+
 	destroy() {
 		this.destroyed = true;
+		for (let symbol of this.settingObservers) Zotero.Prefs.unregisterObserver(symbol);
+		this.settingObservers = [];
+		delete Zotero.HiCitePrefs; // defined by the Settings pane's script
 		this.unpatch?.();
 		this.token++; // cancels a pending debounce
 		if (this.observerID) Zotero.Notifier.unregisterObserver(this.observerID);

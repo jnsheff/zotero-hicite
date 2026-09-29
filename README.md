@@ -5,15 +5,14 @@ A **Zotero 9 and 10** add-on that works like Better BibTeX, but targets the
 not read BibTeX; its native input is its own reference definitions
 (`\defjrnart{key}{author=..., title=...}`), which is what this exports.
 
-* **Stable citation keys.** New items get a `Citation Key: smith2020` line in
-  *Extra* (the same place Better BibTeX pins keys). Collisions get `a`, `b`, ...
-  suffixes. Cases with no author use the first party's name (`wheaton1834`).
-  Zotero itself does not generate keys; if Better BibTeX is installed, its key
-  is adopted when hicite can use it, so your `.bib` and hicite keys agree.
-  hicite can use a key that starts with a letter and contains only letters,
-  digits and hyphens. Otherwise (for example `2012`, which Better BibTeX's
-  `auth.lower + year` produces for a case with no author) the add-on generates
-  its own key and pins it in Extra, and the export ignores the unusable one.
+* **Stable citation keys.** Keys are pinned in *Extra* as `Citation Key: haigh2024` the first time
+  they are needed, so they never change under you. By default the add-on generates its own
+  (family name + year, disambiguated with `a`, `b`, ...); people stored in Zotero as a single name
+  ("Thomas Haigh") are recognized and keyed on the family name, institutions on their whole name
+  (`anthropicpbc2025`). **Cases** are keyed by their Short Title, or else the first party without
+  "Inc."/"LLC" (`grokster`, `garcia`). Alternatively a Settings choice adopts Better BibTeX's key when
+  hicite can use it. hicite can use a key that starts with a letter and contains only letters, digits and
+  hyphens; anything else (for example `2012`) is ignored.
 * **Export translator.** File > Export Library, or right-click a collection >
   Export, then choose **hicite**. Writes a `.tex` file of definitions.
 * **Keep updated (in the Export dialog).** Tick **Keep updated** when exporting
@@ -30,7 +29,11 @@ not read BibTeX; its native input is its own reference definitions
   hicite: Run All Auto-Exports Now* re-runs every job. Missing citation keys in
   the exported scope are pinned before each run so keys never shift as the
   library grows.
-* **Item menu.** *hicite: Pin / Regenerate / Copy Citation Keys*. Copy yields
+* **Settings.** Zotero > Settings > **hicite**: key source and case-key style, whether Short Titles
+  become short-form names, whether a website's title is dropped when it repeats the author, URLs, and
+  your auto-exports (each with its own *Include publisher* checkbox and a *Stop* button).
+* **Item menu.** *hicite: Pin / Regenerate / Copy Citation Keys*; on a library or collection,
+  *hicite: Regenerate Case Keys*. Copy yields
   `key1; key2`, ready to paste into `\sentence{...}`.
 
 ## Install
@@ -60,19 +63,23 @@ To build it yourself: `make xpi`.
 |---|---|
 | Journal Article | `jrnart` |
 | Book | `book` |
-| Book Section | `book` (container, `key-book`) + `citecontainer` |
+| Book Section, Conference Paper, Encyclopedia Article | `citecontainer`, with the container written inline as `in=book: {...}` |
 | Magazine / Newspaper Article | `magart` |
-| Conference Paper | `procart` |
+| Preprint (arXiv, SSRN, ...) | `workingpaper` (`number` from the Archive ID, or read from the URL/DOI; `publisher` = repository); a preprint with no identifier is cited like a web page |
 | Thesis / Manuscript / Letter | `manuscript` |
 | Report | `workingpaper` (if it has a report number) else `book` |
-| Case | `case` |
+| Case | `case` (`p`/`d` split at "v."; Short Title as `inline`) |
 | Statute (code + section) | `statcode` |
-| Web Page and everything else | `website` |
+| Web Page, Blog Post and everything else | `website` |
+
+Other export rules: a Short Title becomes the short-form name (`inline`); single-field names that look
+like people are exported as people (with particles and suffixes: `Bart {van Merrienboer}`,
+`Dean {Edmonds {Jr.}}`); a website's title is left out when it repeats the author; URLs are kept for web
+sources and for cases without a reporter, and dropped for books, chapters and articles that have a print
+citation (a journal article keeps its URL only if volume or pages are missing).
 
 Export option **Include publisher** (off by default) adds publishers to books,
-since Bluebook/Indigo Book style normally omits them. Jobs made from the Export
-dialog keep that choice (`includePublisher` in the job JSON in the
-`extensions.hicite-export.autoExports` preference).
+since Bluebook/Indigo Book style normally omits them. Each auto-export job keeps its own choice; change it in Settings > hicite.
 
 ## Migrating from Juris-M
 
@@ -107,11 +114,12 @@ stay put. If you write your own scripts that edit items, do the same.
 addon/
   manifest.json          plugin manifest (Zotero 9-10)
   bootstrap.js           lifecycle shim
-  hicite-export.js       keys, menus (Zotero.MenuManager), auto-export
+  hicite-export.js       keys, menus (Zotero.MenuManager), auto-export, settings wiring
+  preferences.xhtml/.js  the Settings pane
   translator/hicite.js   the export translator
 tools/                   release helper and the one-off Juris-M migration script (installed into Zotero's translators dir)
   locale/en-US/*.ftl     menu labels
-  prefs.js               default prefs
+  prefs.js               default prefs (settings are the hidden prefs translators.hicite.*)
 test/                    see below
 ```
 
@@ -140,8 +148,10 @@ The key test needs macOS's `jsc` (JavaScriptCore shell); the others use `osascri
   syntax-checked, and their Zotero API usage was checked against Zotero's
   current source (MenuManager, Translate.Export, Search, FilePicker,
   translators directory), but not executed. Expect to debug a first run.
-* No key-pattern preferences: keys are `lastname` + year (cases: first party +
-  year). No preferences UI; jobs made from the menu default to no publisher (edit `includePublisher` in the pref).
+* Keys follow fixed patterns (family name + year; cases by Short Title or first party), with the choices
+  in Settings; there is no free-form key formula. Existing keys are pinned, so a changed setting applies to
+  items without a key: use *Regenerate* to re-key existing ones.
+* The Settings pane could only be checked against Zotero's source and a fake DOM, not run in Zotero.
 * Legal types beyond the table (bills, hearings, regulations, ...) fall back to
   `website`; extend `emit()` in `addon/translator/hicite.js`.
 * Journal names are exported unabbreviated; hicite abbreviates them itself.
