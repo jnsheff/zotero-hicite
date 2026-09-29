@@ -16,6 +16,7 @@ run '^menus OK'             osascript -l JavaScript test/menus-jxa.js
 run '^hook OK'              osascript -l JavaScript test/hook-jxa.js
 run '^publisher option OK'  osascript -l JavaScript test/publisher-jxa.js
 run '^keys OK'              "$JSC" test/keys-jsc.js
+run '^bootstrap OK'         "$JSC" test/bootstrap-jsc.js
 run '^runjob OK'            "$JSC" test/runjob-jsc.js
 run '^all keys match'       osascript -l JavaScript test/parity-jxa.js
 osascript -l JavaScript test/run-jxa.js >/dev/null || fail=1

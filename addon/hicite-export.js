@@ -137,14 +137,32 @@ HiCite = {
 
 	// ------------------------------------------------------------ translator
 
-	async installTranslator() {
+	// Write translator/hicite.js into Zotero's translators directory and load it.
+	// `force` reloads even if the file is already current.
+	async installTranslator({ force = false } = {}) {
 		let path = PathUtils.join(Zotero.getTranslatorsDirectory().path, this.TRANSLATOR_FILE);
 		let source = await Zotero.File.getContentsFromURLAsync(this.rootURI + 'translator/hicite.js');
 		let current = null;
 		try { current = await Zotero.File.getContentsAsync(path); } catch (e) { /* not installed yet */ }
-		if (current === source) return;
-		await Zotero.File.putContentsAsync(path, source);
+		if (current === source && !force) return;
+		if (current !== source) await Zotero.File.putContentsAsync(path, source);
 		await Zotero.Translators.reinit();
+	},
+
+	// The registered translator, repairing the installation if it has gone missing
+	// (e.g. the file was deleted, or an older version's uninstall() removed it).
+	async getTranslator() {
+		// get() is synchronous and throws "Translators not yet loaded" until the
+		// cache is ready (auto-export can fire right after startup); init()
+		// resolves immediately once loaded.
+		await Zotero.Translators.init();
+		let translator = Zotero.Translators.get(this.TRANSLATOR_ID);
+		if (!translator) {
+			await this.installTranslator({ force: true });
+			translator = Zotero.Translators.get(this.TRANSLATOR_ID);
+		}
+		if (!translator) throw new Error('hicite translator is not installed');
+		return translator;
 	},
 
 	// ----------------------------------------------------------- auto-export
@@ -244,12 +262,7 @@ HiCite = {
 			next = '% hicite reference definitions exported from Zotero.\n';
 		}
 		else {
-			// get() is synchronous and throws "Translators not yet loaded" until the
-			// cache is ready (auto-export can fire right after startup); init()
-			// resolves immediately once loaded.
-			await Zotero.Translators.init();
-			let translator = Zotero.Translators.get(this.TRANSLATOR_ID);
-			if (!translator) throw new Error('hicite translator is not installed');
+			let translator = await this.getTranslator();
 			let tmp = PathUtils.join(Zotero.getTempDirectory().path, `hicite-${job.id}.tex`);
 			let translation = new Zotero.Translate.Export();
 			translation.setItems(items);

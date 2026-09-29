@@ -19,7 +19,15 @@ function shutdown() {
 
 function install() {}
 
-async function uninstall() {
+// Bootstrap reason codes (see XPIProvider BOOTSTRAP_REASONS)
+const ADDON_UNINSTALL = 6;
+
+// Zotero also calls uninstall() on the old version during an upgrade (reason
+// ADDON_UPGRADE=7, ADDON_DOWNGRADE=8), and this is async, so it can finish after the
+// new version's startup has re-created the translator. Only clean up when the
+// add-on is really being removed.
+async function uninstall(data, reason) {
+	if (reason !== ADDON_UNINSTALL) return;
 	await Zotero.initializationPromise;
 	// The script is not loaded when Zotero uninstalls a disabled plugin.
 	try {

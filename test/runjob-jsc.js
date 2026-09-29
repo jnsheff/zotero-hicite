@@ -4,7 +4,8 @@ var dir = '.';
 var errors = [], files = {}, notices = [], exportsRun = 0, savedItems = 0, initCalls = 0;
 function eq(a, b, msg) { if (JSON.stringify(a) !== JSON.stringify(b)) errors.push(msg + ': got ' + JSON.stringify(a) + ' want ' + JSON.stringify(b)); }
 
-var translatorsReady = false;
+var translatorsReady = false, registered = false, reinits = 0;
+files['/tz/hicite.js'] = 'TRANSLATOR SOURCE';
 function mockItem(id, fields, creators) {
 	var f = JSON.parse(JSON.stringify(fields));
 	return { id: id, libraryID: 1, key: 'K' + id, itemType: 'book', itemTypeID: 1, isFeedItem: false,
@@ -38,11 +39,21 @@ var Zotero = {
 	Collections: { getByLibraryAndKey: function () { return collectionExists ? {} : false; } },
 	CreatorTypes: { getPrimaryIDForType: function () { return 1; } },
 	Translators: {
-		init: function () { initCalls++; return new Promise(function (r) { setTimeout ? setTimeout(function () { translatorsReady = true; r(); }, 0) : (translatorsReady = true, r()); }); },
-		get: function (id) { if (!translatorsReady) throw new Error('Translators not yet loaded'); return { translatorID: id }; }
+		init: function () { initCalls++; return new Promise(function (r) { setTimeout(function () { translatorsReady = true; registered = 'ready-after-init'; r(); }, 0); }); },
+		reinit: function () { reinits++; registered = true; return Promise.resolve(); },
+		get: function (id) {
+			if (!translatorsReady) throw new Error('Translators not yet loaded');
+			return ('/tz/hicite.js' in files && registered) ? { translatorID: id } : false;
+		}
 	},
+	getTranslatorsDirectory: function () { return { path: '/tz' }; },
 	Translate: { Export: Export },
-	File: { pathToFile: function (p) { return { path: p }; } },
+	File: {
+		pathToFile: function (p) { return { path: p }; },
+		getContentsFromURLAsync: function () { return Promise.resolve('TRANSLATOR SOURCE'); },
+		getContentsAsync: function (p) { return p in files ? Promise.resolve(files[p]) : Promise.reject(new Error('NotFound')); },
+		putContentsAsync: function (p, s) { files[p] = s; return Promise.resolve(); }
+	},
 	getTempDirectory: function () { return { path: '/tmp' }; }
 };
 var PathUtils = { join: function () { return Array.prototype.join.call(arguments, '/'); }, filename: function (p) { return p.split('/').pop(); } };
@@ -51,12 +62,13 @@ var IOUtils = {
 	writeUTF8: function (p, s) { files[p] = s; IOUtils.writes.push(p); return Promise.resolve(); },
 	remove: function (p) { delete files[p]; return Promise.resolve(); }, writes: []
 };
-if (typeof setTimeout === 'undefined') this.setTimeout = function (fn) { fn(); };
+var setTimeout = this.setTimeout || function (fn) { fn(); };
 var HC = new Function('Zotero', 'PathUtils', 'IOUtils', read(dir + '/addon/hicite-export.js') + '; return HiCite;')(Zotero, PathUtils, IOUtils);
 
 var job = { id: 'j1', libraryID: 1, collectionKey: null, path: '/out/refs.tex', includePublisher: false };
 prefs[HC.PREF] = JSON.stringify([job]);
 
+HC.rootURI = 'x/';
 HC.enqueue(['j1']).then(function () {
 	eq(initCalls >= 1, true, 'Translators.init() awaited before get()');
 	eq(exportsRun, 1, 'exported once');
@@ -78,6 +90,17 @@ HC.enqueue(['j1']).then(function () {
 		eq(JSON.parse(prefs[HC.PREF]), [], 'job for deleted collection removed');
 	});
 }).then(function () {
+	// translator file deleted while running (e.g. by an old version's uninstall()): repaired
+	collectionExists = true; scopeIDs = [1, 2];
+	prefs[HC.PREF] = JSON.stringify([Object.assign({}, job, { id: 'fix', path: '/out/fix.tex' })]);
+	delete files['/tz/hicite.js']; registered = false; reinits = 0;
+	return HC.enqueue(['fix']).then(function () {
+		eq(files['/tz/hicite.js'], 'TRANSLATOR SOURCE', 'missing translator file reinstalled');
+		eq(reinits >= 1, true, 'translators reloaded after repair');
+		eq(!!files['/out/fix.tex'], true, 'export succeeded after repair');
+		eq(notices, [], 'no error shown for a repairable translator');
+	});
+}).then(function () {
 	// a failing job reports an error but does not stop the queue
 	collectionExists = true; scopeIDs = [1, 2];
 	prefs[HC.PREF] = JSON.stringify([Object.assign({}, job, { id: 'bad' }), Object.assign({}, job, { id: 'good', path: '/out/good.tex' })]);
@@ -92,6 +115,6 @@ HC.enqueue(['j1']).then(function () {
 		errors.splice(errors_before, errors.length - errors_before, ...errors.slice(errors_before).filter(function (e) { return e.indexOf('disk full') < 0; }));
 	});
 }).then(function () {
-	print(errors.length ? 'FAIL\n' + errors.join('\n') : 'runjob OK (startup ordering, write-if-changed, deleted collection, failure isolation)');
+	print(errors.length ? 'FAIL\n' + errors.join('\n') : 'runjob OK (startup ordering, translator repair, write-if-changed, deleted collection, failure isolation)');
 }).catch(function (e) { print('FAIL\nexception: ' + e.message + '\n' + (e.stack || '')); });
 var errors_before = 0;
