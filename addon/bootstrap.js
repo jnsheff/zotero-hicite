@@ -2,12 +2,10 @@
  * hicite-export.js, which assigns the HiCite global declared here. */
 
 var HiCite;
-var HiCiteTypes;
 
 async function startup({ id, version, rootURI }) {
 	await Zotero.initializationPromise;
 	Services.scriptloader.loadSubScript(rootURI + 'hicite-export.js');
-	Services.scriptloader.loadSubScript(rootURI + 'hicite-types.js');
 	await HiCite.init({ id, version, rootURI });
 	HiCite.addToAllWindows();
 }
@@ -17,7 +15,6 @@ function shutdown() {
 	HiCite.removeFromAllWindows();
 	HiCite.destroy();
 	HiCite = undefined;
-	HiCiteTypes = undefined;
 }
 
 function install() {}

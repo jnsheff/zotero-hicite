@@ -91,27 +91,15 @@ citation (a journal article keeps its URL only if volume or pages are missing).
 Export option **Include publisher** (off by default) adds publishers to books,
 since Bluebook/Indigo Book style normally omits them. Each auto-export job keeps its own choice; change it in Settings > hicite.
 
-## hicite types and fields Zotero lacks
+## Types and parameters Zotero lacks
 
-Zotero does not let a plugin add real item types or fields (a custom type would not sync, and would have no
-creator roles), so hicite-only material is kept in **Extra**, edited through ordinary item-pane rows:
-
-- **Types Zotero has no counterpart for** are a Zotero *Document* with `hicite-doctype: <type>` in Extra. Make
-  one with *File > New hicite Reference* or by setting the *hicite Type* row on a Document (also on the item
-  menu, *hicite: Set Reference Type*): `govdoc` (government document), `casedoc` (document in a case),
-  `congrec` (Congressional Record), `const`, `constamend`, `modelcode` (model code / restatement).
-- **Session laws** (`statsess`) are a Zotero *Statute* with `hicite-doctype: statsess`; other statutes are `statcode`.
-- **Parameters Zotero has no field for** are Extra lines `hicite-<param>: value`, shown as rows only on the types
-  that use them: for example `origsect`, `year`, `slip` (statutes); `status` (bills); `dbid`, `enbanc`, `mem`,
-  `percuriam`, `prior`, `subsequent`, `slip` (cases); `type`, `citation`, `useissue`, `forthcoming` (journal
-  articles); `struct`, `number` (books); and `vol`, `rep`, `page`, `cite`, `docket`, `number`, `agency` for the new types.
-  Flags take `yes`/`no`; `citation`, `in`, `prior` and `subsequent` are hicite syntax and are written unchanged.
-- Everything else uses the Zotero field it belongs to (Title -> `name`, Date -> `year`, Public Law Number ->
-  `number`, Bill Number -> `number`, ...). The full mapping is `addon/hicite-types.json`, which the tests check
-  against the Zotero 9 and 10 schemas.
-
-The export translator reads the same lines, so `hicite-*` lines work on any item, and unknown ones are exported
-as parameters of the same name.
+The exporter also reads hicite-only data kept in Extra: `hicite-doctype: <type>` on a Zotero Document
+(`govdoc`, `casedoc`, `congrec`, `const`, `constamend`, `modelcode`) or Statute (`statsess`), and
+`hicite-<param>: value` lines for parameters with no Zotero field (`origsect`, `slip`, `dbid`, `enbanc`, ...).
+Flags take `yes`/`no`; `citation`, `in`, `prior`, `subsequent` are written as hicite syntax; unknown `hicite-*`
+lines are exported as parameters of the same name. The companion plugin
+[zotero-legal](https://github.com/jnsheff/zotero-legal) adds the item-pane rows and menus for editing them;
+`test/legal-types.json` is a copy of its catalog.
 
 ## Migrating from Juris-M
 
@@ -146,7 +134,6 @@ stay put. If you write your own scripts that edit items, do the same.
 addon/
   manifest.json          plugin manifest (Zotero 9-10)
   bootstrap.js           lifecycle shim
-  hicite-types.js/.json  hicite-only types and Extra fields (item-pane rows, menus)
   hicite-export.js       keys, menus (Zotero.MenuManager), auto-export, settings wiring
   preferences.xhtml/.js  the Settings pane
   translator/hicite.js   the export translator

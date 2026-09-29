@@ -10,7 +10,7 @@ var Zotero = { logError: function (e) { errors.push('logError: ' + e.message); }
 	PreferencePanes: { register: function (o) { registeredPanes.push(o); return Promise.resolve('pane-id'); } },
 	Search: function () { this.addCondition = function () {}; this.search = function () { return Promise.resolve([1, 2, 3, 4]); }; },
 	CreatorTypes: { getPrimaryIDForType: function () { return 1; } } };
-var HC = new Function('Zotero', 'var HiCiteTypes = { load: function () {}, init: function () {}, destroy: function () {} };' + read('addon/hicite-export.js') + '; return HiCite;')(Zotero);
+var HC = new Function('Zotero', read('addon/hicite-export.js') + '; return HiCite;')(Zotero);
 HC.id = 'hicite-export@zotero.local'; HC.rootURI = 'jar:file:///x.xpi!/';
 HC.schedule = function (libs) { scheduled.push(libs === null ? null : Array.from(libs)); };
 

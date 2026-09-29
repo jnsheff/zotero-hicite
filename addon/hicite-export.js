@@ -629,11 +629,6 @@ HiCite = {
 		try { await this.installTranslator(); } catch (e) { Zotero.logError(e); }
 
 		this.registerMenus();
-		try {
-			HiCiteTypes.load(await this.readPackaged('hicite-types.json'));
-			HiCiteTypes.init(id);
-		}
-		catch (e) { Zotero.logError(e); }
 		this.patchExport();
 		this.registerSettings();
 		this.observerID = Zotero.Notifier.registerObserver({
@@ -663,7 +658,6 @@ HiCite = {
 
 	destroy() {
 		this.destroyed = true;
-		try { HiCiteTypes?.destroy(); } catch (e) { Zotero.logError(e); }
 		for (let symbol of this.settingObservers) Zotero.Prefs.unregisterObserver(symbol);
 		this.settingObservers = [];
 		delete Zotero.HiCitePrefs; // defined by the Settings pane's script

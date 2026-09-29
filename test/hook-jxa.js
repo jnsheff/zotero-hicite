@@ -18,7 +18,7 @@ var Zotero = {
 	Translate: { Export: Export }
 };
 var PathUtils = { filename: function (p) { return p.split('/').pop(); } };
-var HC = new Function('Zotero', 'PathUtils', 'var HiCiteTypes = { load: function () {}, init: function () {}, destroy: function () {} };' + read(dir + '/addon/hicite-export.js') + '; return HiCite;')(Zotero, PathUtils);
+var HC = new Function('Zotero', 'PathUtils', read(dir + '/addon/hicite-export.js') + '; return HiCite;')(Zotero, PathUtils);
 HC.enqueue = function (ids) { ran.push(ids); return Promise.resolve(); }; // don't run real exports
 
 function makeTranslation(o) {

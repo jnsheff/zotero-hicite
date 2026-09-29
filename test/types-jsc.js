@@ -22,7 +22,7 @@ has(entry('gordon1982'), 'type={Note}', 'jrnart type'); has(entry('skinner2020')
 hasNot(out, 'hicite-', 'no Extra line leaks into the output');
 
 // The catalog: every field that names a Zotero field exists in that Zotero type (both schemas)
-var cat = JSON.parse(read('addon/hicite-types.json'));
+var cat = JSON.parse(read('test/legal-types.json'));
 ['schema9', 'schema10'].forEach(function (n) {
 	var path = 'test/' + n + '.json';
 	var schema; try { schema = JSON.parse(read(path)); } catch (x) { return; } // schemas are fetched by test/fetch-schema.sh
