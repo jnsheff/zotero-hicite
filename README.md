@@ -6,8 +6,14 @@ not read BibTeX; its native input is its own reference definitions
 (`\defjrnart{key}{author=..., title=...}`), which is what this exports.
 
 * **Stable citation keys.** New items get a `Citation Key: smith2020` line in
-  *Extra* (the same place Better BibTeX pins keys, so existing pinned keys are
-  reused). Collisions get `a`, `b`, ... suffixes.
+  *Extra* (the same place Better BibTeX pins keys). Collisions get `a`, `b`, ...
+  suffixes. Cases with no author use the first party's name (`wheaton1834`).
+  Zotero itself does not generate keys; if Better BibTeX is installed, its key
+  is adopted when hicite can use it, so your `.bib` and hicite keys agree.
+  hicite can use a key that starts with a letter and contains only letters,
+  digits and hyphens. Otherwise (for example `2012`, which Better BibTeX's
+  `auth.lower + year` produces for a case with no author) the add-on generates
+  its own key and pins it in Extra, and the export ignores the unusable one.
 * **Export translator.** File > Export Library, or right-click a collection >
   Export, then choose **hicite**. Writes a `.tex` file of definitions.
 * **Keep updated (in the Export dialog).** Tick **Keep updated** when exporting
@@ -81,9 +87,11 @@ test/                    see below
 
 ## Tests
 
-`make test` runs, without Zotero:
+`make test` runs, without Zotero (each test must print its success marker, or the
+run fails):
 
-1. menu registration against Zotero's menu rules, the manifest rules, the
+1. key selection (usable vs. unusable keys, Better BibTeX keys, duplicates, cases),
+   menu registration against Zotero's menu rules, the manifest rules, the
    Export-dialog hook, and the publisher option;
 2. key-generator parity between the plugin and the translator (the algorithm
    is duplicated because translators run in a sandbox);
@@ -92,6 +100,8 @@ test/                    see below
 4. a compile of that output against the **current CTAN release of hicite**
    (`test/fetch-ctan-hicite.sh` downloads and builds it into `test/ctan-hicite/`;
    any hicite installed elsewhere is masked). Last run: hicite 1.1.0, no errors.
+
+The key test needs macOS's `jsc` (JavaScriptCore shell); the others use `osascript`.
 
 ## Limitations
 

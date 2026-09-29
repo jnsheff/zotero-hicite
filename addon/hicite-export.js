@@ -32,6 +32,10 @@ HiCite = {
 
 	STOPWORDS: /^(a|an|the|of|on|in|re|and|for|to)$/i,
 
+	// A key hicite can use as a reference nickname: starts with a letter (a
+	// leading digit reads as a volume number), no spaces or TeX specials.
+	KEY_OK: /^[A-Za-z][A-Za-z0-9-]*$/,
+
 	slug(s) {
 		return String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
 	},
@@ -56,7 +60,9 @@ HiCite = {
 		}
 		let key = this.slug(name) || 'ref';
 		if (!/^[a-z]/.test(key)) key = 'ref' + key;
-		let year = Zotero.Date.strToDate(item.getField('date') || '').year;
+		// 'year' handles types whose date field has another name (dateDecided, ...)
+		let year = item.getField('year');
+		if (!/^\d{4}$/.test(year) || year === '0000') year = '';
 		return key + (year || '');
 	},
 
@@ -70,9 +76,19 @@ HiCite = {
 		return s;
 	},
 
+	// The usable "Citation Key:" line from Extra, or ''.
 	getKey(item) {
 		let m = /^\s*Citation Key\s*:\s*(\S+)\s*$/im.exec(item.getField('extra') || '');
-		return m ? m[1] : '';
+		return m && this.KEY_OK.test(m[1]) ? m[1] : '';
+	},
+
+	// The key in Zotero's native Citation Key field (e.g. from Better BibTeX), if usable.
+	getNativeKey(item) {
+		try {
+			let key = item.getField('citationKey');
+			return this.KEY_OK.test(key) ? key : '';
+		}
+		catch (e) { return ''; } // item type without the field
 	},
 
 	setKey(item, key) {
@@ -105,11 +121,14 @@ HiCite = {
 		return base + item.key.toLowerCase();
 	},
 
+	// Pin a citation key in Extra. A usable existing key is kept; otherwise a
+	// usable native key (e.g. Better BibTeX's) is adopted so that .bib and hicite
+	// keys agree; otherwise one is generated. `force` always generates.
 	async pin(item, { force = false } = {}) {
 		if (!item.isRegularItem() || item.isFeedItem) return '';
 		let existing = this.getKey(item);
 		if (existing && !force) return existing;
-		let key = await this.uniqueKey(item);
+		let key = (!force && this.getNativeKey(item)) || await this.uniqueKey(item);
 		if (key === existing) return key;
 		this.setKey(item, key);
 		await item.saveTx({ skipDateModifiedUpdate: true });

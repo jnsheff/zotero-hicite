@@ -185,5 +185,66 @@
   "volume": "100",
   "pages": "1",
   "date": "2000"
+ },
+ {
+  "itemType": "case",
+  "caseName": "United States v. Alvarez",
+  "reporter": "U.S.",
+  "reporterVolume": "567",
+  "firstPage": "709",
+  "dateDecided": "2012-06-28 June 28, 2012",
+  "citationKey": "2012"
+ },
+ {
+  "itemType": "book",
+  "title": "Native Key Book",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Nan",
+    "lastName": "Tive"
+   }
+  ],
+  "date": "2015",
+  "citationKey": "tiveNativeKey2015"
+ },
+ {
+  "itemType": "book",
+  "title": "Duplicate A",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "D",
+    "lastName": "Up"
+   }
+  ],
+  "date": "2016",
+  "extra": "Citation Key: dupkey"
+ },
+ {
+  "itemType": "book",
+  "title": "Duplicate B",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "D",
+    "lastName": "Up"
+   }
+  ],
+  "date": "2017",
+  "extra": "Citation Key: dupkey"
+ },
+ {
+  "itemType": "book",
+  "title": "Digit Key In Extra",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "E",
+    "lastName": "Xtra"
+   }
+  ],
+  "date": "2018",
+  "extra": "Citation Key: 2018"
  }
 ]

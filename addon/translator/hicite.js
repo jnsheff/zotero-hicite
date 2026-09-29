@@ -13,7 +13,7 @@
 		"Include publisher": false,
 		"Keep updated": false
 	},
-	"lastUpdated": "2026-09-29 12:00:00"
+	"lastUpdated": "2026-09-29 15:00:00"
 }
 
 /*
@@ -119,10 +119,22 @@ function suffix(n) { // 1 -> a, 26 -> z, 27 -> aa
 	return s;
 }
 
+// A key hicite can use as a nickname: starts with a letter (a leading digit
+// reads as a volume number); letters, digits and hyphens only.
+function usableKey(k) {
+	return /^[A-Za-z][A-Za-z0-9-]*$/.test(k || '');
+}
+
+// The first usable key among the Extra "Citation Key:" line and the native
+// Citation Key field (Better BibTeX and this add-on both write them). Unusable
+// keys, e.g. "2012" from a key format with no author, are ignored.
 function pinnedKey(item) {
-	if (item.citationKey) return item.citationKey;
 	var m = /^\s*Citation Key\s*:\s*(\S+)\s*$/im.exec(item.extra || '');
-	return m ? m[1] : '';
+	var candidates = [m ? m[1] : '', item.citationKey || ''];
+	for (var i = 0; i < candidates.length; i++) {
+		if (usableKey(candidates[i])) return candidates[i];
+	}
+	return '';
 }
 
 // Escape plain text for TeX and keep braces balanced (keyval requires it).
@@ -316,12 +328,14 @@ function doExport() {
 		if (!SKIP_TYPES[item.itemType]) items.push(item);
 	}
 
-	// Pinned keys are authoritative: reserve them first, then disambiguate
-	// generated keys around them.
+	// Pinned keys are authoritative: reserve them first (disambiguating any
+	// duplicates among themselves), then generate the rest around them.
 	var used = {};
 	var keys = items.map(function (it) {
-		var k = pinnedKey(it);
-		if (k) used[k] = (used[k] || 0) + 1;
+		var k = pinnedKey(it), n = 0, base = k;
+		if (!k) return '';
+		while (used[k]) k = base + suffix(++n);
+		used[k] = 1;
 		return k;
 	});
 	items.forEach(function (it, i) {

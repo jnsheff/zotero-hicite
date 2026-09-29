@@ -17,7 +17,9 @@ var bad = 0, lines = [];
 items.forEach(function (it) {
 	var mock = {
 		itemType: it.itemType, itemTypeID: 1,
-		getField: function (f) { return it[f] || ''; },
+		getField: function (f) {
+			if (f === 'year') { var m = /(\d{4})/.exec(it.date || it.dateDecided || ''); return m ? m[1] : ''; }
+			return it[f] || ''; },
 		getCreators: function () { return (it.creators || []).map(function (c) {
 			return { creatorTypeID: c.creatorType === 'author' ? 1 : 2, lastName: c.name || c.lastName, firstName: c.firstName }; }); }
 	};
