@@ -92,7 +92,8 @@ test/                    see below
 `make test` runs, without Zotero (each test must print its success marker, or the
 run fails):
 
-1. key selection (usable vs. unusable keys, Better BibTeX keys, duplicates, cases),
+1. auto-export job execution against mocks (startup ordering, write-if-changed,
+   deleted collections, failure isolation), key selection (usable vs. unusable keys, Better BibTeX keys, duplicates, cases),
    menu registration against Zotero's menu rules, the manifest rules, the
    Export-dialog hook, and the publisher option;
 2. key-generator parity between the plugin and the translator (the algorithm

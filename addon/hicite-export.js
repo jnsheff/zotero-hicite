@@ -244,7 +244,11 @@ HiCite = {
 			next = '% hicite reference definitions exported from Zotero.\n';
 		}
 		else {
-			let translator = await Zotero.Translators.get(this.TRANSLATOR_ID);
+			// get() is synchronous and throws "Translators not yet loaded" until the
+			// cache is ready (auto-export can fire right after startup); init()
+			// resolves immediately once loaded.
+			await Zotero.Translators.init();
+			let translator = Zotero.Translators.get(this.TRANSLATOR_ID);
 			if (!translator) throw new Error('hicite translator is not installed');
 			let tmp = PathUtils.join(Zotero.getTempDirectory().path, `hicite-${job.id}.tex`);
 			let translation = new Zotero.Translate.Export();
