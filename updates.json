@@ -1,0 +1,19 @@
+{
+  "addons": {
+    "hicite-export@zotero.local": {
+      "updates": [
+        {
+          "version": "0.4.0",
+          "update_link": "https://github.com/jnsheff/zotero-hicite/releases/download/v0.4.0/hicite-export.xpi",
+          "update_hash": "sha256:147f8416da22d7d38473ec3d3f1eca259d484606d3ff0a86b69b6f54543b4dea",
+          "applications": {
+            "zotero": {
+              "strict_min_version": "8.999",
+              "strict_max_version": "10.0.*"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

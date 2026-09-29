@@ -35,13 +35,15 @@ not read BibTeX; its native input is its own reference definitions
 
 ## Install
 
-```sh
-make xpi
-```
+Download `hicite-export.xpi` from the
+[latest release](https://github.com/jnsheff/zotero-hicite/releases/latest), then in
+Zotero: Tools > Plugins > gear > *Install Plugin From File...* and choose it.
+Requires Zotero 9 or 10 (`strict_min_version 8.999`, `strict_max_version 10.0.*`).
+From 0.4.0 on, Zotero checks `updates.json` in this repository and updates the
+plugin automatically. (Versions before 0.4.0 had a placeholder update URL, so
+install 0.4.0 manually once.)
 
-Then Zotero > Tools > Plugins > gear > *Install Plugin From File...* and choose
-`hicite-export.xpi`. Requires Zotero 9 or 10 (`strict_min_version 8.999`,
-`strict_max_version 10.0.*`).
+To build it yourself: `make xpi`.
 
 ## Use
 
@@ -116,3 +118,16 @@ The key test needs macOS's `jsc` (JavaScriptCore shell); the others use `osascri
 * Journal names are exported unabbreviated; hicite abbreviates them itself.
 * `update_url` is a placeholder (`https://localhost/...`): Zotero refuses manifests without
   one, but there is no update server, so updates are manual. Replace it if you host the plugin.
+
+## Releasing (maintainers)
+
+1. Bump `version` in `addon/manifest.json`; run `make test`.
+2. `make xpi`, then `python3 tools/make-updates.py` (adds the new version and the
+   package's SHA-256 to `updates.json`; earlier versions are kept).
+3. Commit and push, then publish that exact `.xpi` (do not rebuild it, the hash would
+   change): `gh release create vX.Y.Z hicite-export.xpi --title vX.Y.Z --notes ...`
+
+## License
+
+[MIT](LICENSE). The add-on generates input for the
+[hicite](https://ctan.org/pkg/hicite) package (GPL-3.0) but contains none of its code.

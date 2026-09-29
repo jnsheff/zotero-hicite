@@ -16,6 +16,20 @@ for k in ('name', 'version', 'manifest_version'):
 def vt(v):  # 9.0.6 -> (9,0,6); "9.0.*" upper bound handled below
     return tuple(int(x) for x in v.split('.') if x.isdigit())
 
+# updates.json (Zotero's update manifest) must list the current version, for this id
+upath = os.path.join(here, '..', 'updates.json')
+if os.path.exists(upath):
+    ups = json.load(open(upath)).get('addons', {}).get(z.get('id'), {}).get('updates', [])
+    cur = [u for u in ups if u.get('version') == m.get('version')]
+    if not cur:
+        errors.append('updates.json has no entry for version ' + str(m.get('version')) + ' (run tools/make-updates.py)')
+    else:
+        u = cur[0]
+        if not u.get('update_link', '').endswith('/v%s/hicite-export.xpi' % m['version']):
+            errors.append('updates.json update_link does not match version')
+        if not re.match(r'^sha256:[0-9a-f]{64}$', u.get('update_hash', '')):
+            errors.append('updates.json update_hash malformed')
+
 target = vt(sys.argv[1] if len(sys.argv) > 1 else '9.0.6')
 lo = z.get('strict_min_version')
 hi = z.get('strict_max_version', '')
