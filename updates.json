@@ -45,6 +45,17 @@
               "strict_max_version": "10.0.*"
             }
           }
+        },
+        {
+          "version": "0.5.1",
+          "update_link": "https://github.com/jnsheff/zotero-hicite/releases/download/v0.5.1/hicite-export.xpi",
+          "update_hash": "sha256:4933538f4537f498d2053b286f716212a1270b9c9bb3c96fbadc9fccf1b6daec",
+          "applications": {
+            "zotero": {
+              "strict_min_version": "8.999",
+              "strict_max_version": "10.0.*"
+            }
+          }
         }
       ]
     }
