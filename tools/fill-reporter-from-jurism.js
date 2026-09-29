@@ -108,16 +108,27 @@ const STATES = {
 	ut: ['Utah', 'Utah'], vt: ['Vermont', 'Vt.'], va: ['Virginia', 'Va.'], wa: ['Washington', 'Wash.'],
 	wv: ['West Virginia', 'W. Va.'], wi: ['Wisconsin', 'Wis.'], wy: ['Wyoming', 'Wyo.'], pr: ['Puerto Rico', 'P.R.'],
 };
-const STATE_LOOKUP = {}; // "new york" / "n.y." / "ny" / "ny." -> "N.Y."
+const STATE_LOOKUP = {}; // "new york" / "n.y." / "ny" / "ny." -> "ny"
 for (const [code, [name, abbr]] of Object.entries(STATES)) {
-	STATE_LOOKUP[name.toLowerCase()] = abbr;
-	STATE_LOOKUP[abbr.toLowerCase().replace(/[.\s]/g, '')] = abbr;
-	STATE_LOOKUP[code] = abbr;
+	STATE_LOOKUP[name.toLowerCase()] = code;
+	STATE_LOOKUP[abbr.toLowerCase().replace(/[.\s]/g, '')] = code;
+	STATE_LOOKUP[code] = code;
 }
-function stateAbbrev(text) {
+function stateCode(text) {
 	const t = String(text || '').toLowerCase().trim().replace(/\.$/, '');
 	return STATE_LOOKUP[t] || STATE_LOOKUP[t.replace(/[.\s]/g, '')] || null;
 }
+function stateAbbrev(text) {
+	const code = stateCode(text);
+	return code ? STATES[code][1] : null;
+}
+
+// The court a state's own official reporter covers (Bluebook 10.4(b) omits the court
+// then), compared ignoring dots, spaces and case. Only clear-cut cases are listed.
+const OFFICIAL_HIGH_COURT_REPORTER = {
+	ny: /^ny(2d|3d)?$/, ca: /^cal(2d|3d|4th|5th)?$/, ma: /^mass$/, nj: /^nj$/,
+	pa: /^pa$/, il: /^ill(2d)?$/, wa: /^wash(2d)?$/, md: /^md$/,
+};
 
 const DISTRICT_DESIGNATORS = { d: 'D.', nd: 'N.D.', sd: 'S.D.', ed: 'E.D.', wd: 'W.D.', md: 'M.D.', cd: 'C.D.' };
 // U.S. Supreme Court reporters, compared ignoring dots, spaces and case, because real
@@ -146,20 +157,37 @@ function districtFromKey(key) { // "us:c2:ny.sd" -> "S.D.N.Y."
 // Translate a Juris-M court ID using the jurisdiction key.
 // -> { court, kind } ('supreme' / 'ccpa' are adjusted later using the reporter),
 //    or { unresolved: reason }.
+// The highest court of a state, cited by the state's abbreviation ("Tex.", "Cal."), or null.
+// New York's "Supreme Court" is a trial court, so it is not the highest court there.
+function stateHighCourt(code) {
+	return STATES[code] ? { court: STATES[code][1], kind: 'state-high', state: code } : null;
+}
+
 function courtFromId(courtId, key) {
 	switch (courtId) {
 		case 'court.appeals.federal.circuit': return { court: 'Fed. Cir.' };
 		case 'court.customs.patent.appeals': return { court: 'C.C.P.A.', kind: 'ccpa' };
 		case 'supreme.court':
-			return key === 'us' ? { court: 'U.S.', kind: 'supreme' } : { unresolved: 'supreme.court outside the U.S. federal system' };
+			if (key === 'us') return { court: 'U.S.', kind: 'supreme' };
+			{
+				const m = /^us:([a-z]{2})$/.exec(key);
+				if (m && m[1] === 'ny') return { unresolved: "New York's Supreme Court is a trial court, not its highest court" };
+				if (m && stateHighCourt(m[1])) return stateHighCourt(m[1]);
+			}
+			return { unresolved: 'supreme.court outside the U.S. federal system' };
 		case 'court.appeals': {
 			// Juris-M numbers the D.C. Circuit "c0" (its district court is us:c0:dc.d) and
 			// the Federal Circuit "c".
 			if (key === 'us:c0' || key === 'us:cdc') return { court: 'D.C. Cir.' };
 			if (key === 'us:c') return { court: 'Fed. Cir.' };
+			// In New York and Maryland the Court of Appeals is the highest court
+			if (key === 'us:ny' || key === 'us:md') return stateHighCourt(key.slice(3));
 			const m = /^us:c(\d+)$/.exec(key);
 			const abbr = m && circuitAbbrev(m[1]);
-			return abbr ? { court: abbr } : { unresolved: 'court.appeals without a usable circuit' };
+			if (abbr) return { court: abbr };
+			return /^us:[a-z]{2}$/.test(key)
+				? { unresolved: "court.appeals in a state other than NY/MD is an intermediate court, not the highest" }
+				: { unresolved: 'court.appeals without a usable circuit' };
 		}
 		case 'district.court': {
 			const d = districtFromKey(key);
@@ -176,11 +204,19 @@ const ORDINALS = { first: 1, second: 2, third: 3, fourth: 4, fifth: 5, sixth: 6,
 	ninth: 9, tenth: 10, eleventh: 11 };
 
 // Rewrite a typed-out court in Bluebook form, or null if not recognized.
-function normalizeCourtText(text) {
+function normalizeCourtText(text, key) {
 	const s = String(text || '').replace(/\s+/g, ' ').trim();
 	const l = s.toLowerCase().replace(/\.$/, '');
 	if (!s) return null;
-	if (/^(u\.?s\.? )?supreme court( of the united states)?$/.test(l) || l === 'u.s') return { court: 'U.S.', kind: 'supreme' };
+	// With a state jurisdiction, "Supreme Court" / "Supreme Judicial Court" / NY+MD "Court of Appeals"
+	// is that state's highest court.
+	const sm = /^us:([a-z]{2})$/.exec(key || '');
+	if (sm && STATES[sm[1]]) {
+		const st = sm[1];
+		if (/^supreme (judicial )?court$/.test(l) && st !== 'ny') return stateHighCourt(st);
+		if (l === 'court of appeals' && (st === 'ny' || st === 'md')) return stateHighCourt(st);
+	}
+	if (/^((u\.?s\.?|united states) )?supreme court( of the united states)?$/.test(l) || l === 'u.s') return { court: 'U.S.', kind: 'supreme' };
 	if (/federal circuit/.test(l) || /^fed\. ?cir$/.test(l)) return { court: 'Fed. Cir.' };
 	if (/customs and patent appeals/.test(l)) return { court: 'C.C.P.A.', kind: 'ccpa' };
 	if (/trademark trial and appeal board/.test(l)) return { court: 'T.T.A.B.' };
@@ -208,6 +244,13 @@ function normalizeCourtText(text) {
 		const st = stateAbbrev(m[2]);
 		if (desig && st) return { court: joinDistrict(desig, st) };
 	}
+	// "Supreme Court of Texas", "Texas Supreme Court", "Maine Sup. Ct.", "Sup. Ct. Cal."
+	m = /^(?:the )?supreme (?:judicial )?court of (?:the state of )?(.+)$/.exec(l) || /^(.+?) supreme (?:judicial )?court$/.exec(l) ||
+		/^(.+?) sup\.? ?ct\.?$/.exec(l) || /^sup\.? ?ct\.? (.+)$/.exec(l);
+	if (m) {
+		const code = stateCode(m[1]);
+		if (code && code !== 'ny') return stateHighCourt(code); // NY's Supreme Court is a trial court
+	}
 	return null;
 }
 
@@ -215,6 +258,10 @@ function normalizeCourtText(text) {
 // identifies is omitted (hicite: "may be omitted if the reporter uniquely identifies the court").
 function finalCourt(res, reporter) {
 	if (res.kind === 'supreme') return isSupremeReporter(reporter) ? '' : res.court;
+	if (res.kind === 'state-high') {
+		const official = OFFICIAL_HIGH_COURT_REPORTER[res.state];
+		return official && official.test(String(reporter || '').toLowerCase().replace(/[.\s]/g, '')) ? '' : res.court;
+	}
 	if (res.kind === 'ccpa') return String(reporter || '').toLowerCase().replace(/[.\s]/g, '') === 'ccpa' ? '' : res.court;
 	return res.court;
 }
@@ -237,7 +284,7 @@ function planCase(input, options) {
 		if (r) { reporter = r; changes.reporter = { old: input.reporter || '', new: r, how: 'legacy block' }; }
 	}
 	if (!reporter && o.inferReporter && String(input.volume || '').trim() && String(input.page || '').trim()) {
-		const res = courtOld && ID_LIKE.test(courtOld) ? courtFromId(courtOld, key) : (courtOld ? normalizeCourtText(courtOld) : null);
+		const res = courtOld && ID_LIKE.test(courtOld) ? courtFromId(courtOld, key) : (courtOld ? normalizeCourtText(courtOld, key) : null);
 		if (res && res.kind === 'supreme') {
 			reporter = 'U.S.';
 			changes.reporter = { old: input.reporter || '', new: 'U.S.', how: 'inferred from the Supreme Court' };
@@ -253,7 +300,7 @@ function planCase(input, options) {
 		}
 	}
 	else if (courtOld) {
-		const res = normalizeCourtText(courtOld);
+		const res = normalizeCourtText(courtOld, key);
 		// A typed "Supreme Court" is only the U.S. Supreme Court if something confirms it
 		// (a Supreme Court reporter, or a legacy "us" jurisdiction and no reporter);
 		// otherwise it may well be a state's supreme court, so leave it alone.

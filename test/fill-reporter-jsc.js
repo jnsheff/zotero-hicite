@@ -25,8 +25,18 @@ new Function('HICITE_TEST', 'return (async () => {' + src + '})()')(true).then(f
 		id('district.court', 'us:c3:pa.ed'), id('district.court', 'us:c3:nj.d'), id('district.court', 'us:c4:md.d'), id('district.court', 'us:c4:nc.md'),
 		id('district.court', 'us:c7:il.nd'), id('district.court', 'us:c8:mn.d'), id('district.court', 'us:c10:co.d'), id('district.court', 'us:c4:va.ed'), id('district.court', 'us:c2:vt.d')],
 		['S.D.N.Y.', 'E.D.N.Y.', 'C.D. Cal.', 'N.D. Cal.', 'E.D. Pa.', 'D.N.J.', 'D. Md.', 'M.D.N.C.', 'N.D. Ill.', 'D. Minn.', 'D. Colo.', 'E.D. Va.', 'D. Vt.'], 'district abbreviations (spacing rule)');
-	eq([id('district.court', 'us:nj'), id('district.court', 'us:c2:zz.sd'), id('appellate.court', 'us:il'), id('ecj~chamber.1', 'eu.int:cjeu'), id('supreme.court', 'us:tx')],
-		['UNRESOLVED', 'UNRESOLVED', 'UNRESOLVED', 'UNRESOLVED', 'UNRESOLVED'], 'state courts / foreign courts not guessed');
+	eq([id('district.court', 'us:nj'), id('district.court', 'us:c2:zz.sd'), id('appellate.court', 'us:il'), id('ecj~chamber.1', 'eu.int:cjeu'), id('supreme.court', 'eu.int')],
+		['UNRESOLVED', 'UNRESOLVED', 'UNRESOLVED', 'UNRESOLVED', 'UNRESOLVED'], 'intermediate state courts / foreign courts not guessed');
+	// ---- state highest courts (Bluebook: the state's abbreviation)
+	eq([id('supreme.court', 'us:tx'), id('supreme.court', 'us:ca'), id('supreme.court', 'us:al'), id('supreme.court', 'us:va'), id('supreme.court', 'us:wv'),
+		id('supreme.court', 'us:oh'), id('supreme.court', 'us:il'), id('supreme.court', 'us:dc')],
+		['Tex.', 'Cal.', 'Ala.', 'Va.', 'W. Va.', 'Ohio', 'Ill.', 'D.C.'], 'state supreme courts -> state abbreviation');
+	eq([id('court.appeals', 'us:ny'), id('court.appeals', 'us:md')], ['N.Y.', 'Md.'], 'NY / MD Court of Appeals is the highest court');
+	eq([id('supreme.court', 'us:ny'), id('court.appeals', 'us:tx'), id('court.appeals', 'us:ca')], ['UNRESOLVED', 'UNRESOLVED', 'UNRESOLVED'], "NY Supreme Court is a trial court; other states' court.appeals is intermediate");
+	eq(F.courtFromId('supreme.court', 'us:ny').unresolved.indexOf('trial court') >= 0, true, 'NY reason explains why');
+	var fc = function (state, court, rep) { return F.finalCourt({ court: court, kind: 'state-high', state: state }, rep); };
+	eq([fc('ny', 'N.Y.', 'N.Y.2d'), fc('ny', 'N.Y.', 'N.Y.3d'), fc('ca', 'Cal.', 'Cal. 4th'), fc('ca', 'Cal.', 'Cal.2d'), fc('ma', 'Mass.', 'Mass.')], ['', '', '', '', ''], "court omitted for the state's own official reporter");
+	eq([fc('ny', 'N.Y.', 'N.Y.S.2d'), fc('ca', 'Cal.', 'P.3d'), fc('tx', 'Tex.', 'S.W.3d'), fc('ca', 'Cal.', 'Cal. App. 4th'), fc('ny', 'N.Y.', '')], ['N.Y.', 'Cal.', 'Tex.', 'Cal.', 'N.Y.'], 'regional / appellate / no reporter keep the court');
 	eq([id('court.appeals.federal.circuit', 'us:c'), id('court.customs.patent.appeals', 'us:c'), id('supreme.court', 'us')], ['Fed. Cir.', 'C.C.P.A.', 'U.S.'], 'fixed-court IDs');
 	eq([F.finalCourt({ court: 'U.S.', kind: 'supreme' }, 'U.S.'), F.finalCourt({ court: 'U.S.', kind: 'supreme' }, 'S. Ct.'), F.finalCourt({ court: 'U.S.', kind: 'supreme' }, ''),
 		F.finalCourt({ court: 'C.C.P.A.', kind: 'ccpa' }, 'C.C.P.A.'), F.finalCourt({ court: 'C.C.P.A.', kind: 'ccpa' }, 'F.2d')],
@@ -46,6 +56,13 @@ new Function('HICITE_TEST', 'return (async () => {' + src + '})()')(true).then(f
 	eq([tx('United States District Court, E.D.N.Y.'), tx('United States District Court, W.D. New York.'), tx('United States District Court, W.D. Wisconsin'),
 		tx('Southern District of New York'), tx('N. D. Cal.'), tx('N.D. Cal.'), tx('M.D. Fla.')],
 		['E.D.N.Y.', 'W.D.N.Y.', 'W.D. Wis.', 'S.D.N.Y.', 'N.D. Cal.', 'N.D. Cal.', 'M.D. Fla.'], 'district names');
+	eq([tx('Supreme Court of Texas'), tx('Texas Supreme Court'), tx('Maine Sup. Ct.'), tx('Sup. Ct. Cal.'), tx('Supreme Court of the State of Washington'),
+		tx('Supreme Court of Virginia'), tx('United States Supreme Court'), tx('Supreme Court of New York'), tx('New York Supreme Court')],
+		['Tex.', 'Tex.', 'Me.', 'Cal.', 'Wash.', 'Va.', 'U.S.', null, null], 'typed state supreme courts (NY is a trial court)');
+	var txk = function (t, k) { var r = F.normalizeCourtText(t, k); return r ? r.court : null; };
+	eq([txk('Supreme Judicial Court', 'us:ma'), txk('Supreme Judicial Court', 'us:me'), txk('Supreme Court', 'us:tx'), txk('Court of Appeals', 'us:ny'), txk('Court of Appeals', 'us:md'),
+		txk('Court of Appeals', 'us:tx'), txk('Supreme Judicial Court', ''), txk('Supreme Court', 'us:ny')],
+		['Mass.', 'Me.', 'Tex.', 'N.Y.', 'Md.', null, null, 'U.S.'], 'jurisdiction disambiguates a bare "Supreme Court" / "Court of Appeals"');
 	eq([tx('Cook Cty. Cir. Ct. Ill.'), tx('Cir. Ct. 10th Cir., Fla.'), tx('Court of Appeals'), tx('D.C. Cir.'), tx('2d Cir.'), tx('T.T.A.B.'), tx('')],
 		[null, null, null, null, null, null, null], 'not rewritten: state courts, ambiguous, already abbreviated');
 
@@ -70,6 +87,11 @@ new Function('HICITE_TEST', 'return (async () => {' + src + '})()')(true).then(f
 	eq(/ambiguous/.test(amb.notes[0].textCourtUnrecognized), true, 'ambiguous "Supreme Court" is reported');
 	eq(ch(plan({ court: 'Supreme Court', extra: blk('', '002us') }, { normalizeText: true })), { court: 'U.S.' }, 'typed "Supreme Court" confirmed by a us jurisdiction with no reporter');
 	eq(ch(plan({ court: 'Supreme Court' }, { normalizeText: true })), {}, 'typed "Supreme Court" with nothing to confirm it is left alone');
+	eq(ch(plan({ reporter: 'S.W.3d', court: 'supreme.court', extra: blk('', '005us:txTexas|TX') })), { court: 'Tex.' }, 'Texas Supreme Court -> Tex. (regional reporter keeps the court)');
+	eq(ch(plan({ reporter: 'N.Y.2d', court: 'court.appeals', extra: blk('', '005us:nyNew York|NY') })), { court: '' }, 'NY Court of Appeals + N.Y.2d -> court omitted');
+	eq(ch(plan({ reporter: 'N.Y.S.2d', court: 'supreme.court', extra: blk('', '005us:nyNew York|NY') })), {}, "NY Supreme Court (trial court) is left alone");
+	eq(plan({ reporter: 'N.Y.S.2d', court: 'supreme.court', extra: blk('', '005us:nyNew York|NY') }).notes[0].unresolved.indexOf('trial court') > 0, true, 'and reported with the reason');
+	eq(ch(plan({ reporter: 'S.W.3d', court: 'Supreme Court', extra: blk('', '005us:txTexas|TX') }, { normalizeText: true })), { court: 'Tex.' }, 'typed "Supreme Court" + Texas jurisdiction -> Tex. (no longer ambiguous)');
 	eq(ch(plan({ court: 'United States Court of Appeals, Federal Circuit' })), {}, 'typed-out court untouched by default');
 	eq(plan({ court: 'United States Court of Appeals, Federal Circuit' }).notes[0].suggested, 'Fed. Cir.', 'suggestion reported');
 	eq(ch(plan({ court: 'United States Court of Appeals, Federal Circuit' }, { normalizeText: true })), { court: 'Fed. Cir.' }, 'typed-out court rewritten when enabled');

@@ -82,8 +82,11 @@ add-on reads. `tools/fill-reporter-from-jurism.js` copies the reporter into Zote
 field and turns the court IDs into the Bluebook abbreviations hicite expects, using each case's
 legacy jurisdiction to pick the circuit or district (`court.appeals` + Second Circuit becomes
 `2d Cir.`; `district.court` + S.D. New York becomes `S.D.N.Y.`). A Supreme Court court is left
-blank when the reporter (`U.S.`, `S. Ct.`, ...) already identifies it. Courts it cannot translate
-with certainty (state courts, EU courts) are listed, not guessed. Typed-out courts ("United States
+blank when the reporter (`U.S.`, `S. Ct.`, ...) already identifies it. A state's highest court is
+written as the state's Bluebook abbreviation (`Tex.`, `Cal.`, `Mass.`), and left blank when the
+state's own official reporter identifies it (`N.Y.2d`); New York's Supreme Court, a trial court, is
+not mistaken for its highest. Intermediate state courts and foreign courts it cannot translate with
+certainty are listed, not guessed. Typed-out courts ("United States
 Court of Appeals, Federal Circuit") are only rewritten if you opt in.
 
 It is meant to be pasted into Tools > Developer > Run JavaScript. It defaults to a dry run, skips
