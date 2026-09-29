@@ -1,0 +1,106 @@
+{
+  "_comment": "hicite reference types that Zotero lacks (virtual: stored as a Zotero 'Document' whose Extra field says 'hicite-doctype: <id>') and, for each type, how every hicite parameter maps to a Zotero field or, when Zotero has no matching field, to an Extra line 'hicite-<param>: value'. 'z' is the Zotero field (or creator:<type>); no 'z' means Extra. 'raw' values are hicite syntax and are not TeX-escaped; 'flag' values are yes/no.",
+  "types": [
+    { "id": "govdoc", "label": "Government Document", "base": "document", "virtual": true,
+      "fields": [
+        { "p": "name", "label": "Name", "z": "title", "req": true },
+        { "p": "instauth", "label": "Issuing Institution", "z": "creator:author", "req": true },
+        { "p": "vol", "label": "Volume" }, { "p": "rep", "label": "Reporter / Register" }, { "p": "page", "label": "First Page" },
+        { "p": "cite", "label": "Full Citation (instead of vol/rep/page)" },
+        { "p": "docket", "label": "Docket / Document Number" },
+        { "p": "year", "label": "Date", "z": "date", "req": true },
+        { "p": "number", "label": "Number (e.g. Exec. Order No.)" },
+        { "p": "prior", "label": "Prior History", "raw": true }, { "p": "subsequent", "label": "Subsequent History", "raw": true },
+        { "p": "agency", "label": "Agency" }, { "p": "court", "label": "Court" }
+      ] },
+    { "id": "casedoc", "label": "Document in a Case", "base": "document", "virtual": true,
+      "fields": [
+        { "p": "name", "label": "Name", "z": "title", "req": true },
+        { "p": "citation", "label": "Case Citation (hicite)", "raw": true, "req": true },
+        { "p": "docket", "label": "Docket Number", "req": true },
+        { "p": "year", "label": "Date", "z": "date", "req": true },
+        { "p": "number", "label": "Document Number", "req": true }
+      ] },
+    { "id": "congrec", "label": "Congressional Record", "base": "document", "virtual": true,
+      "fields": [
+        { "p": "vol", "label": "Volume", "req": true }, { "p": "rep", "label": "Reporter", "req": true },
+        { "p": "page", "label": "First Page", "req": true },
+        { "p": "year", "label": "Date", "z": "date", "req": true }
+      ] },
+    { "id": "const", "label": "Constitution", "base": "document", "virtual": true,
+      "fields": [
+        { "p": "name", "label": "Name", "z": "title", "req": true },
+        { "p": "page", "label": "Provision", "req": true },
+        { "p": "place", "label": "State / Place" },
+        { "p": "year", "label": "Date", "z": "date" }
+      ] },
+    { "id": "constamend", "label": "Constitutional Amendment", "base": "document", "virtual": true,
+      "fields": [ { "p": "number", "label": "Amendment Number", "req": true } ] },
+    { "id": "modelcode", "label": "Model Code / Restatement", "base": "document", "virtual": true,
+      "fields": [
+        { "p": "name", "label": "Name", "z": "title", "req": true },
+        { "p": "instauth", "label": "Issuing Institution", "z": "creator:author", "req": true },
+        { "p": "edition", "label": "Edition" },
+        { "p": "year", "label": "Date", "z": "date" }
+      ] },
+
+    { "id": "statcode", "label": "Statute in a Code", "base": "statute",
+      "fields": [
+        { "p": "name", "label": "Name", "z": "nameOfAct" },
+        { "p": "vol", "label": "Code Volume", "z": "codeNumber", "req": true },
+        { "p": "rep", "label": "Code", "z": "code", "req": true },
+        { "p": "page", "label": "Section", "z": "section", "req": true },
+        { "p": "origsect", "label": "Original Section" },
+        { "p": "year", "label": "Code Year" }
+      ] },
+    { "id": "statsess", "label": "Statute in Session Laws", "base": "statute",
+      "fields": [
+        { "p": "name", "label": "Name", "z": "nameOfAct", "req": true },
+        { "p": "type", "label": "Number Prefix (e.g. Pub. L. No.)" },
+        { "p": "number", "label": "Law Number", "z": "publicLawNumber", "req": true },
+        { "p": "vol", "label": "Volume", "z": "codeNumber" },
+        { "p": "rep", "label": "Session Laws", "z": "code" },
+        { "p": "page", "label": "First Page", "z": "pages" },
+        { "p": "cite", "label": "Full Citation (instead of vol/rep/page)" },
+        { "p": "year", "label": "Date Enacted", "z": "dateEnacted", "req": true },
+        { "p": "in", "label": "Contained In", "raw": true },
+        { "p": "origsect", "label": "Original Section" },
+        { "p": "chapter", "label": "Chapter" },
+        { "p": "slip", "label": "Slip Law", "flag": true },
+        { "p": "place", "label": "Place" }, { "p": "publisher", "label": "Publisher" }
+      ] },
+    { "id": "bill", "label": "Bill or Resolution", "base": "bill",
+      "fields": [
+        { "p": "name", "label": "Name", "z": "title" },
+        { "p": "number", "label": "Bill Number", "z": "billNumber", "req": true },
+        { "p": "congress", "label": "Congress", "z": "session", "req": true },
+        { "p": "year", "label": "Date", "z": "date", "req": true },
+        { "p": "status", "label": "Status (e.g. enacted, as passed)" }
+      ] },
+    { "id": "book", "label": "Book", "base": "book",
+      "fields": [
+        { "p": "struct", "label": "Structure (hicite struct)" },
+        { "p": "number", "label": "Number (hicite number)" }
+      ] },
+    { "id": "case", "label": "Case", "base": "case",
+      "fields": [
+        { "p": "cite", "label": "Full Citation (instead of vol/rep/page)" },
+        { "p": "slip", "label": "Slip Opinion", "flag": true },
+        { "p": "dbid", "label": "Database ID (Westlaw/Lexis)" },
+        { "p": "inlinedefendant", "label": "Inline Name: Defendant Only", "flag": true },
+        { "p": "prior", "label": "Prior History", "raw": true }, { "p": "subsequent", "label": "Subsequent History", "raw": true },
+        { "p": "enbanc", "label": "En Banc", "flag": true }, { "p": "mem", "label": "Memorandum", "flag": true },
+        { "p": "percuriam", "label": "Per Curiam", "flag": true }
+      ] },
+    { "id": "jrnart", "label": "Journal Article", "base": "journalArticle",
+      "fields": [
+        { "p": "type", "label": "Article Type (e.g. Note, Comment)" },
+        { "p": "citation", "label": "Parallel Citation", "raw": true },
+        { "p": "useissue", "label": "Cite by Issue", "flag": true },
+        { "p": "forthcoming", "label": "Forthcoming", "flag": true },
+        { "p": "cite", "label": "Full Citation (instead of vol/rep/page)" }
+      ] },
+    { "id": "magart", "label": "Magazine Article", "base": "magazineArticle", "fields": [] },
+    { "id": "website", "label": "Web Site", "base": "webpage", "fields": [] }
+  ]
+}

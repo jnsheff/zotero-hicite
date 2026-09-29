@@ -29,7 +29,7 @@ function mockItem(type, fields, creators) {
 	return { id: 1, libraryID: 1, key: 'ABCD', itemType: type, itemTypeID: 1, isFeedItem: false,
 		isRegularItem: function () { return true; }, _f: f,
 		getField: function (n) {
-			if (n === 'year') { var m = /(\d{4})/.exec(f.date || f.dateDecided || ''); return m ? m[1] : ''; }
+			if (n === 'year') { var m = /(\d{4})/.exec(f.date || f.dateDecided || f.dateEnacted || ''); return m ? m[1] : ''; }
 			if (n === 'date' && type === 'case') return ''; // like Zotero: base field unmapped without includeBaseMapped
 			return f[n] || ''; },
 		setField: function (n, v) { f[n] = v; },

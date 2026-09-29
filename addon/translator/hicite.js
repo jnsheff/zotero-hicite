@@ -404,7 +404,40 @@ function container(item, titleFields, opts) {
 	return inner;
 }
 
-function emit(item, key) {
+
+// ---------------------------------------------- hicite-only types and parameters
+// Zotero has no field for some hicite parameters and no item type for some hicite reference types.
+// The hicite Export plugin stores those in the Extra field, one "hicite-<param>: value" per line;
+// "hicite-doctype: govdoc" (on a Zotero Document) picks one of the types Zotero lacks. See
+// hicite-types.json in the plugin for the catalog.
+var RAW_PARAMS = { citation: 1, 'in': 1, prior: 1, subsequent: 1 }; // hicite syntax, not TeX-escaped
+var FLAG_PARAMS = { slip: 1, inlinedefendant: 1, enbanc: 1, mem: 1, percuriam: 1, useissue: 1, forthcoming: 1 };
+
+function extraParams(item) {
+	var out = [], re = /^\s*hicite-([a-z]+)\s*:\s*(.*?)\s*$/gim, m;
+	while ((m = re.exec(item.extra || ''))) {
+		if (m[1] !== 'doctype' && m[2] !== '') out.push({ p: m[1], v: m[2] });
+	}
+	return out;
+}
+function docType(item) {
+	var m = /^\s*hicite-doctype\s*:\s*([a-z]+)\s*$/im.exec(item.extra || '');
+	return m ? m[1] : '';
+}
+// Add the Extra parameters to a definition; they replace a parameter of the same name.
+function withExtras(item, d) {
+	extraParams(item).forEach(function (e) {
+		var prefix = '    ' + e.p + '=';
+		d.lines = d.lines.filter(function (l) { return l.indexOf(prefix) !== 0 && l !== '    ' + e.p + ','; });
+		if (FLAG_PARAMS[e.p]) {
+			if (/^(1|y|yes|true|on)$/i.test(e.v)) d.lines.push('    ' + e.p + ',');
+		}
+		else d.raw(e.p, RAW_PARAMS[e.p] ? e.v : tex(e.v));
+	});
+	return d;
+}
+
+function emitBase(item, key) {
 	var t = item.itemType;
 	var d;
 
@@ -549,6 +582,67 @@ function emit(item, key) {
 		default:
 			return webpage(item, key);
 	}
+}
+
+
+// The hicite-only types, all kept in a Zotero Document (see hicite-types.json).
+function emitVirtual(item, key, type) {
+	var d = new Def(type, key), name = pick(item, 'title');
+	switch (type) {
+		case 'govdoc':
+			d.set('name', name).names(item, 'author', 'author', 'instauth', maxAuthors()).set('year', dateOf(item));
+			break;
+		case 'casedoc':
+			d.set('name', name).set('year', dateOf(item));
+			break;
+		case 'congrec':
+			d.set('year', dateOf(item));
+			break;
+		case 'const':
+			d.set('name', name).set('year', dateOf(item));
+			break;
+		case 'modelcode':
+			d.set('name', name).names(item, 'author', 'author', 'instauth', maxAuthors()).set('year', dateOf(item));
+			break;
+		case 'constamend':
+			break;
+		default:
+			return null;
+	}
+	d.inline(item).url(item);
+	return withExtras(item, d);
+}
+
+function emit(item, key) {
+	var t = item.itemType, dt = docType(item), d;
+	if (t === 'document' && dt && (d = emitVirtual(item, key, dt))) return [d];
+
+	if (t === 'statute' && dt === 'statsess') {
+		d = new Def('statsess', key);
+		d.set('name', pick(item, 'nameOfAct', 'title')).set('number', pick(item, 'publicLawNumber'))
+			.set('vol', pick(item, 'codeNumber', 'volume')).set('rep', pick(item, 'code'))
+			.set('page', firstPage(pick(item, 'pages'))).set('year', pick(item, 'dateEnacted', 'date'))
+			.inline(item).url(item);
+		return [withExtras(item, d)];
+	}
+	if (t === 'bill') {
+		d = new Def('bill', key);
+		d.set('name', pick(item, 'title')).set('number', pick(item, 'billNumber'))
+			.set('congress', pick(item, 'session')).set('year', dateOf(item)).inline(item).url(item);
+		return [withExtras(item, d)];
+	}
+	if (t === 'statute' && (dt === 'statcode' || extraParams(item).length) && pick(item, 'code') && pick(item, 'section')) {
+		// keyword form, so that origsect / year / name can be given
+		d = new Def('statcode', key);
+		d.set('name', pick(item, 'nameOfAct')).set('vol', pick(item, 'codeNumber', 'volume'))
+			.set('rep', pick(item, 'code')).set('page', pick(item, 'section')).inline(item);
+		return [withExtras(item, d)];
+	}
+
+	var defs = emitBase(item, key);
+	// the Extra parameters go on the ordinary definitions too (case, jrnart, book, ...)
+	if (extraParams(item).length && defs.length === 1 && defs[0] instanceof Def) withExtras(item, defs[0]);
+	return defs;
 }
 
 // Web pages, and the catch-all for types without a better hicite equivalent.

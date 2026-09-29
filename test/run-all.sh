@@ -16,6 +16,8 @@ run '^menus OK'             osascript -l JavaScript test/menus-jxa.js
 run '^hook OK'              osascript -l JavaScript test/hook-jxa.js
 run '^publisher option OK'  osascript -l JavaScript test/publisher-jxa.js
 run '^translator OK'        "$JSC" test/translator-jsc.js
+run '^types OK'              "$JSC" test/types-jsc.js
+run '^types plugin OK'       "$JSC" test/types-plugin-jsc.js
 run '^settings OK'          "$JSC" test/settings-jsc.js
 run '^pane OK'              "$JSC" test/pane-jsc.js
 run '^keys OK'              "$JSC" test/keys-jsc.js

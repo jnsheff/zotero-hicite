@@ -41,7 +41,7 @@
    {
     "creatorType": "author",
     "firstName": "Ann",
-    "lastName": "Écrivain"
+    "lastName": "\u00c9crivain"
    },
    {
     "creatorType": "editor",
@@ -143,8 +143,8 @@
   "creators": [
    {
     "creatorType": "author",
-    "firstName": "María José",
-    "lastName": "de la Peña"
+    "firstName": "Mar\u00eda Jos\u00e9",
+    "lastName": "de la Pe\u00f1a"
    }
   ],
   "publicationTitle": "J. of \"Odd\" Things",
@@ -855,5 +855,123 @@
    }
   ],
   "date": "1995"
+ },
+ {
+  "itemType": "document",
+  "title": "Ensuring a National Policy Framework",
+  "creators": [
+   {
+    "creatorType": "author",
+    "name": "The White House",
+    "fieldMode": 1,
+    "lastName": "The White House",
+    "firstName": ""
+   }
+  ],
+  "date": "2025-12-16",
+  "extra": "hicite-doctype: govdoc\nhicite-vol: 90\nhicite-rep: Fed. Reg.\nhicite-page: 58499\nhicite-number: Exec. Order No. 14365\nCitation Key: trumpeo"
+ },
+ {
+  "itemType": "document",
+  "title": "Complaint",
+  "date": "2026-03-11",
+  "extra": "hicite-doctype: casedoc\nhicite-citation: case: {parties={Angwin v. Superhuman Platform, Inc.}, docket={26-cv-02005}, court={S.D.N.Y.}}\nhicite-docket: 26-cv-02005\nhicite-number: 1\nCitation Key: angwincomplaint"
+ },
+ {
+  "itemType": "document",
+  "title": "Congressional Record",
+  "date": "2025",
+  "extra": "hicite-doctype: congrec\nhicite-vol: 161\nhicite-rep: Cong. Rec.\nhicite-page: S4066\nCitation Key: aimoratorium"
+ },
+ {
+  "itemType": "document",
+  "title": "the Progress Clause",
+  "extra": "hicite-doctype: const\nhicite-page: Article I, S 8, clause 8\nCitation Key: progressclause"
+ },
+ {
+  "itemType": "document",
+  "title": "First Amendment",
+  "extra": "hicite-doctype: constamend\nhicite-number: 1\nCitation Key: firstamend"
+ },
+ {
+  "itemType": "document",
+  "title": "Uniform Trade Secrets Act",
+  "creators": [
+   {
+    "creatorType": "author",
+    "name": "Uniform Law Commission",
+    "fieldMode": 1,
+    "lastName": "Uniform Law Commission",
+    "firstName": ""
+   }
+  ],
+  "date": "1985",
+  "extra": "hicite-doctype: modelcode\nCitation Key: utsa"
+ },
+ {
+  "itemType": "statute",
+  "nameOfAct": "National Artificial Intelligence Initiative Act of 2020",
+  "publicLawNumber": "116-283",
+  "code": "Stat.",
+  "codeNumber": "134",
+  "pages": "4523",
+  "dateEnacted": "2021-01-01",
+  "extra": "hicite-doctype: statsess\nhicite-type: Pub. L. No.\nhicite-slip: yes\nCitation Key: naiia"
+ },
+ {
+  "itemType": "statute",
+  "nameOfAct": "Communications Decency Act",
+  "code": "U.S.C.",
+  "codeNumber": "47",
+  "section": "230",
+  "extra": "hicite-origsect: 509\nhicite-year: 2018\nCitation Key: cda230"
+ },
+ {
+  "itemType": "bill",
+  "title": "NO FAKES Act",
+  "billNumber": "S. 1367",
+  "session": "119",
+  "date": "2025-04-09",
+  "extra": "hicite-status: introduced\nCitation Key: nofakes"
+ },
+ {
+  "itemType": "case",
+  "caseName": "Doe v. Roe",
+  "court": "9th Cir.",
+  "dateDecided": "2024-01-02",
+  "docketNumber": "23-1",
+  "reporter": "F.4th",
+  "reporterVolume": "90",
+  "firstPage": "1",
+  "extra": "hicite-enbanc: yes\nhicite-percuriam: no\nhicite-dbid: 2024 WL 1\nCitation Key: doeroe"
+ },
+ {
+  "itemType": "journalArticle",
+  "title": "Fair Use as Market Failure",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Wendy",
+    "lastName": "Gordon"
+   }
+  ],
+  "publicationTitle": "Colum. L. Rev.",
+  "volume": "82",
+  "pages": "1600",
+  "date": "1982",
+  "extra": "hicite-type: Note\nCitation Key: gordon1982"
+ },
+ {
+  "itemType": "book",
+  "title": "Verbal Behavior",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "B. F.",
+    "lastName": "Skinner"
+   }
+  ],
+  "date": "2020",
+  "extra": "hicite-number: 2\nCitation Key: skinner2020"
  }
 ]
