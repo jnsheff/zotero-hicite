@@ -93,6 +93,14 @@ It is meant to be pasted into Tools > Developer > Run JavaScript. It defaults to
 shared group libraries unless told otherwise, refuses to apply without a backup confirmation,
 and can be reverted step by step. Read the comment at the top of the file first.
 
+## Better BibTeX
+
+Better BibTeX 9 keeps citation keys in Zotero's native Citation Key field, and (depending on its
+"reset key on change" setting) regenerates a key whenever an item is saved. Saving an item from an
+add-on or script therefore silently replaces its key. This add-on's key pinning and the Juris-M
+migration script both save with `skipNotifier`, so Better BibTeX never sees those edits and your keys
+stay put. If you write your own scripts that edit items, do the same.
+
 ## Layout
 
 ```

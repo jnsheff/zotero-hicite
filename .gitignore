@@ -15,3 +15,6 @@
 /test/doc.log
 /test/doc.pdf
 /test/log.txt
+
+# Local, ready-to-run copies of tools (settings baked in)
+*.local.js

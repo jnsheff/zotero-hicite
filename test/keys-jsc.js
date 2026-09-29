@@ -17,7 +17,7 @@ has('dupkey', 'book', 'first duplicate pinned key kept'); has('dupkeya', 'book',
 has('xtra2018', 'book', 'unusable Extra key "2018" replaced by generated key');
 
 // ---- plugin side (pin)
-var saved = 0;
+var saved = 0, saveOpts = [];
 var Zotero = { logError: function (e) { errors.push('logError: ' + e.message); },
 	Search: function () { this.addCondition = function () {}; this.search = function () { return Promise.resolve([]); }; },
 	Items: { getAsync: function () { return Promise.resolve([]); } },
@@ -33,7 +33,7 @@ function mockItem(type, fields, creators) {
 			return f[n] || ''; },
 		setField: function (n, v) { f[n] = v; },
 		getCreators: function () { return creators || []; },
-		saveTx: function () { saved++; return Promise.resolve(); } };
+		saveTx: function (o) { saved++; saveOpts.push(o); return Promise.resolve(); } };
 }
 var alvarez = { caseName: 'United States v. Alvarez', dateDecided: '2012-06-28 June 28, 2012', citationKey: '2012' };
 var cases = [
@@ -49,6 +49,8 @@ Promise.all(cases.map(function (c) {
 	return HC.pin(c[1], c[2]).then(function (k) { results.push([c[0], k, c[3], c[1]._f.extra || '']); });
 })).then(function () {
 	eq(results.length, cases.length, 'all pins completed');
+	eq(saveOpts.length > 0 && saveOpts.every(function (o) { return o.skipNotifier === true && o.skipDateModifiedUpdate === true; }), true,
+		'pinning saves without notifying other add-ons (Better BibTeX would regenerate keys) and keeps Date Modified');
 	results.forEach(function (r) {
 		eq(r[1], r[2], r[0]);
 		// exactly one key line in Extra, and it is the expected key

@@ -131,7 +131,10 @@ HiCite = {
 		let key = (!force && this.getNativeKey(item)) || await this.uniqueKey(item);
 		if (key === existing) return key;
 		this.setKey(item, key);
-		await item.saveTx({ skipDateModifiedUpdate: true });
+		// skipNotifier: other add-ons must not react to this edit. Better BibTeX, for one, can be
+		// set to regenerate an item's key whenever the item changes, which would replace the
+		// user's keys just because we pinned one.
+		await item.saveTx({ skipDateModifiedUpdate: true, skipNotifier: true });
 		return key;
 	},
 

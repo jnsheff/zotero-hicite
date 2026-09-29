@@ -38,7 +38,9 @@
  *  - A log of every change (old and new values) is written to the Zotero data
  *    directory BEFORE any item is modified, and 'revert' only restores fields that
  *    still hold the value this script set.
- *  - "Date Modified" is not updated.
+ *  - "Date Modified" is not updated, and saves use skipNotifier so other add-ons do not react.
+ *    (Better BibTeX can be set to regenerate an item's citation key whenever the item changes;
+ *    without skipNotifier this migration would have replaced the keys of every case it edited.)
  */
 
 const MODE = 'dry-run';               // 'dry-run' | 'apply' | 'revert'
@@ -352,7 +354,7 @@ if (MODE === 'revert') {
 				any = true;
 			}
 			if (skipped) changedSince++;
-			if (any) { await item.save({ skipDateModifiedUpdate: true }); reverted++; }
+			if (any) { await item.save({ skipDateModifiedUpdate: true, skipNotifier: true }); reverted++; }
 		}
 	});
 	await IOUtils.move(logPath, logPath + '.reverted'); // so the next revert steps back further
@@ -440,7 +442,7 @@ await Zotero.File.putContentsAsync(logPath, JSON.stringify({
 await Zotero.DB.executeTransaction(async () => {
 	for (const p of plan) {
 		for (const [f, c] of Object.entries(p.changes)) p.item.setField(f, c.new);
-		await p.item.save({ skipDateModifiedUpdate: true });
+		await p.item.save({ skipDateModifiedUpdate: true, skipNotifier: true });
 	}
 });
 return out + `\n\nAPPLIED: ${plan.length} items changed. Log: ${logPath}\nTo undo, set MODE = 'revert' and run again.`;

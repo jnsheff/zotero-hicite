@@ -161,7 +161,7 @@ function runFlow() {
 		eq([f('P1').reporter, f('P1').court, f('P2').reporter, f('P2').court], ['F.3d', '2d Cir.', 'U.S.', ''], 'reporter and court set');
 		eq([f('P3').reporter, f('P3').court, f('P4').court, f('P5').court], ['F.2d', '9th Cir.', '', 'ecj'], 'existing / unresolved / empty left alone');
 		eq([f('G1').court, f('R1').court], ['district.court', 'court.appeals'], 'group + read-only untouched');
-		eq(all.filter(function (i) { return i.lastOpts; }).every(function (i) { return i.lastOpts.skipDateModifiedUpdate === true; }), true, 'Date Modified not bumped');
+		eq(all.filter(function (i) { return i.lastOpts; }).every(function (i) { return i.lastOpts.skipDateModifiedUpdate === true && i.lastOpts.skipNotifier === true; }), true, 'Date Modified not bumped; other add-ons (Better BibTeX) not notified');
 		eq(f('P1').extra.indexOf('mlzsync1') === 0, true, 'Extra left as is');
 		var logs = Object.keys(fs); eq(logs.length, 1, 'one log'); eq(JSON.parse(fs[logs[0]]).changes.length, 2, 'log lists both items');
 		eq(JSON.parse(fs[logs[0]]).changes[0].fields.court, { old: 'court.appeals', new: '2d Cir.' }, 'log records old and new values');
