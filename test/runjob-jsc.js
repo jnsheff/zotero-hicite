@@ -48,9 +48,12 @@ var Zotero = {
 	},
 	getTranslatorsDirectory: function () { return { path: '/tz' }; },
 	Translate: { Export: Export },
+	debug: function () {},
 	File: {
 		pathToFile: function (p) { return { path: p }; },
-		getContentsFromURLAsync: function () { return Promise.resolve('TRANSLATOR SOURCE'); },
+		// The real one fails on jar: URLs (goes through the HTTP client); reproduce that.
+		getContentsFromURLAsync: function (u) { return Promise.reject(new Error('NS_ERROR_FAILURE [nsIURI.username] ' + u)); },
+		getResourceAsync: function (u) { return /^jar:/.test(u) ? Promise.resolve('TRANSLATOR SOURCE') : Promise.reject(new Error('bad url ' + u)); },
 		getContentsAsync: function (p) { return p in files ? Promise.resolve(files[p]) : Promise.reject(new Error('NotFound')); },
 		putContentsAsync: function (p, s) { files[p] = s; return Promise.resolve(); }
 	},
@@ -68,7 +71,7 @@ var HC = new Function('Zotero', 'PathUtils', 'IOUtils', read(dir + '/addon/hicit
 var job = { id: 'j1', libraryID: 1, collectionKey: null, path: '/out/refs.tex', includePublisher: false };
 prefs[HC.PREF] = JSON.stringify([job]);
 
-HC.rootURI = 'x/';
+HC.rootURI = 'jar:file:///Users/x/Application%20Support/p.xpi!/';
 HC.enqueue(['j1']).then(function () {
 	eq(initCalls >= 1, true, 'Translators.init() awaited before get()');
 	eq(exportsRun, 1, 'exported once');

@@ -137,11 +137,27 @@ HiCite = {
 
 	// ------------------------------------------------------------ translator
 
+	// Read a file from inside this add-on's package. rootURI is a jar:file:///...xpi!/
+	// URL, which Zotero.File.getContentsFromURLAsync cannot fetch (it goes through
+	// the HTTP client and fails parsing the URI); getResourceAsync opens a channel.
+	async readPackaged(relPath) {
+		let url = this.rootURI + relPath;
+		try {
+			return await Zotero.File.getResourceAsync(url);
+		}
+		catch (e) {
+			Zotero.debug(`hicite: getResourceAsync failed for ${url}, trying fetch(): ${e}`);
+			let response = await fetch(url);
+			if (!response.ok) throw new Error(`Could not read ${url}: ${response.status}`);
+			return await response.text();
+		}
+	},
+
 	// Write translator/hicite.js into Zotero's translators directory and load it.
 	// `force` reloads even if the file is already current.
 	async installTranslator({ force = false } = {}) {
 		let path = PathUtils.join(Zotero.getTranslatorsDirectory().path, this.TRANSLATOR_FILE);
-		let source = await Zotero.File.getContentsFromURLAsync(this.rootURI + 'translator/hicite.js');
+		let source = await this.readPackaged('translator/hicite.js');
 		let current = null;
 		try { current = await Zotero.File.getContentsAsync(path); } catch (e) { /* not installed yet */ }
 		if (current === source && !force) return;
