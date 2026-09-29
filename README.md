@@ -76,11 +76,19 @@ dialog keep that choice (`includePublisher` in the job JSON in the
 
 ## Migrating from Juris-M
 
-Juris-M kept a case's reporter (e.g. `F.3d`) in Extra as an `mlzsync1:` block, which this
-add-on does not read. `tools/fill-reporter-from-jurism.js` copies it into Zotero's Reporter
-field. It is meant to be pasted into Tools > Developer > Run JavaScript; it defaults to a
-dry run, skips shared group libraries unless told otherwise, refuses to apply without a
-backup confirmation, and can be reverted. Read the comment at the top of the file first.
+Juris-M kept a case's reporter (e.g. `F.3d`) in Extra as an `mlzsync1:` block and its court as
+an internal ID (`court.appeals`, `district.court`, `supreme.court`), neither of which this
+add-on reads. `tools/fill-reporter-from-jurism.js` copies the reporter into Zotero's Reporter
+field and turns the court IDs into the Bluebook abbreviations hicite expects, using each case's
+legacy jurisdiction to pick the circuit or district (`court.appeals` + Second Circuit becomes
+`2d Cir.`; `district.court` + S.D. New York becomes `S.D.N.Y.`). A Supreme Court court is left
+blank when the reporter (`U.S.`, `S. Ct.`, ...) already identifies it. Courts it cannot translate
+with certainty (state courts, EU courts) are listed, not guessed. Typed-out courts ("United States
+Court of Appeals, Federal Circuit") are only rewritten if you opt in.
+
+It is meant to be pasted into Tools > Developer > Run JavaScript. It defaults to a dry run, skips
+shared group libraries unless told otherwise, refuses to apply without a backup confirmation,
+and can be reverted step by step. Read the comment at the top of the file first.
 
 ## Layout
 
