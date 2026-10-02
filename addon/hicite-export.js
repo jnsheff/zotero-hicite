@@ -31,7 +31,7 @@ HiCite = {
 	// Settings shared with the export translator (which reads them with Zotero.getHiddenPref,
 	// i.e. the prefs extensions.zotero.translators.hicite.*). Defaults also live in prefs.js and
 	// in the translator's header; keep the three in step.
-	SETTINGS: { keySource: 'own', caseKeys: 'shorttitle', shortTitleInline: true, omitRedundantSite: true, includeUrls: true, maxAuthors: '0' },
+	SETTINGS: { keySource: 'own', keyStore: 'extra', caseKeys: 'shorttitle', shortTitleInline: true, omitRedundantSite: true, includeUrls: true, maxAuthors: '0' },
 	settingObservers: [],
 
 	pref(name) {
@@ -147,9 +147,23 @@ HiCite = {
 	},
 
 	// The usable "Citation Key:" line from Extra, or ''.
-	getKey(item) {
+	getExtraKey(item) {
 		let m = /^\s*Citation Key\s*:\s*(\S+)\s*$/im.exec(item.getField('extra') || '');
 		return m && this.KEY_OK.test(m[1]) ? m[1] : '';
+	},
+
+	// The key hicite uses for an item: a pinned key in Extra; with the key store "Zotero's Citation Key
+	// field", the usable key in that field when there is none in Extra (a key left in Extra is hicite's
+	// own and wins until "Move Keys to Citation Key Field" has moved it, so switching the setting never
+	// changes a key you already use).
+	getKey(item) {
+		let extra = this.getExtraKey(item);
+		if (extra || !this.storeInField()) return extra;
+		return this.getNativeKey(item);
+	},
+
+	storeInField() {
+		return this.pref('keyStore') === 'field';
 	},
 
 	// The key in Zotero's native Citation Key field (e.g. from Better BibTeX), if usable.
@@ -161,22 +175,45 @@ HiCite = {
 		catch (e) { return ''; } // item type without the field
 	},
 
-	setKey(item, key) {
+	clearExtraKey(item) {
 		let lines = (item.getField('extra') || '').split('\n')
 			.filter(l => !/^\s*Citation Key\s*:/i.test(l));
 		while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
-		lines.push('Citation Key: ' + key);
 		item.setField('extra', lines.join('\n'));
 	},
 
+	// Put `key` in Zotero's Citation Key field and drop the line from Extra; false if the item type has no such field.
+	writeNativeKey(item, key) {
+		try {
+			item.setField('citationKey', key);
+			if (item.getField('citationKey') !== key) return false;
+		}
+		catch (e) { return false; }
+		this.clearExtraKey(item);
+		return true;
+	},
+
+	// Store `key` for the item: in Zotero's Citation Key field (and drop the line from Extra) when that is
+	// the key store and the item type has the field, else as a "Citation Key:" line in Extra.
+	setKey(item, key) {
+		if (this.storeInField() && this.writeNativeKey(item, key)) return;
+		this.clearExtraKey(item);
+		let extra = item.getField('extra') || '';
+		item.setField('extra', (extra ? extra + '\n' : '') + 'Citation Key: ' + key);
+	},
+
 	async isTaken(item, key) {
-		let s = new Zotero.Search();
-		s.libraryID = item.libraryID;
-		s.addCondition('extra', 'contains', 'Citation Key: ' + key);
-		s.addCondition('noChildren', 'true');
-		let ids = await s.search();
-		for (let other of await Zotero.Items.getAsync(ids)) {
-			if (other.id !== item.id && this.getKey(other) === key) return true;
+		let conditions = [['extra', 'contains', 'Citation Key: ' + key]];
+		if (this.storeInField()) conditions.push(['citationKey', 'is', key]);
+		for (let [field, op, value] of conditions) {
+			let s = new Zotero.Search();
+			s.libraryID = item.libraryID;
+			s.addCondition(field, op, value);
+			s.addCondition('noChildren', 'true');
+			let ids = await s.search();
+			for (let other of await Zotero.Items.getAsync(ids)) {
+				if (other.id !== item.id && this.getKey(other) === key) return true;
+			}
 		}
 		return false;
 	},
@@ -199,7 +236,7 @@ HiCite = {
 		let existing = this.getKey(item);
 		if (existing && !force) return existing;
 		// Better BibTeX's key is only adopted when the "adopt" key source is selected.
-		let native = !force && this.pref('keySource') === 'adopt' ? this.getNativeKey(item) : '';
+		let native = !force && this.pref('keySource') === 'adopt' && !this.storeInField() ? this.getNativeKey(item) : '';
 		let key = native || await this.uniqueKey(item);
 		if (key === existing) return key;
 		this.setKey(item, key);
@@ -530,6 +567,69 @@ HiCite = {
 		if (!r.cancelled) this.notify(`Regenerated the keys of ${r.changed} of ${r.total} ${casesOnly ? 'cases' : 'items'}`);
 	},
 
+	// ------------------------------------------- moving keys to Zotero's Citation Key field
+	// What "Move Keys to Citation Key Field" would do to the items in a scope. A key pinned in Extra moves to
+	// the field; where the field already holds a different key (Better BibTeX's, say), the hicite key replaces
+	// it, because the hicite key is the one your documents cite.
+	async planKeyMove(scope) {
+		let plan = { total: 0, move: [], overwrite: [], stored: 0, none: 0 };
+		for (let item of await this.scopeItems(scope)) {
+			plan.total++;
+			let extra = this.getExtraKey(item), native = this.getNativeKey(item);
+			if (!extra) { if (native) plan.stored++; else plan.none++; continue; }
+			if (native && native !== extra) plan.overwrite.push({ item, key: extra, old: native });
+			else plan.move.push({ item, key: extra });
+		}
+		return plan;
+	},
+
+	describeKeyMove(plan, where) {
+		let n = plan.move.length + plan.overwrite.length;
+		let lines = [`Move hicite citation keys to Zotero's Citation Key field in ${where}?`, '',
+			`${plan.move.length} keys move from Extra to the field.`];
+		if (plan.overwrite.length) {
+			lines.push(`${plan.overwrite.length} keys replace a different key that is already in the field (for example one made by Better BibTeX):`);
+			for (let o of plan.overwrite.slice(0, 10)) lines.push(`   ${(o.item.getField('title') || o.item.getField('caseName') || '').slice(0, 50)}: ${o.old} -> ${o.key}`);
+			if (plan.overwrite.length > 10) lines.push(`   … and ${plan.overwrite.length - 10} more`);
+		}
+		lines.push(`${plan.stored} items already have their key in the field only, and ${plan.none} have no key yet; those are left alone.`, '',
+			'hicite keys do not change, so documents that cite them are unaffected. Afterwards hicite stores and reads keys in the ' +
+			`Citation Key field (the "Key store" setting is switched). ${n} items will be modified.`);
+		return lines.join('\n');
+	},
+
+	confirmKeyMove(text) {
+		try {
+			return Services.prompt.confirm(Zotero.getMainWindow(), 'Move citation keys', text);
+		}
+		catch (e) { return false; } // no way to ask: do nothing
+	},
+
+	async moveKeys(scope, { confirm = null } = {}) {
+		let plan = await this.planKeyMove(scope);
+		let todo = plan.move.concat(plan.overwrite);
+		if (confirm && todo.length && !await confirm(plan)) return { moved: 0, failed: 0, plan, cancelled: true };
+		let moved = 0, failed = 0;
+		for (let { item, key } of todo) {
+			if (this.writeNativeKey(item, key)) {
+				// skipNotifier: Better BibTeX must not react to this edit by regenerating the key
+				await item.saveTx({ skipDateModifiedUpdate: true, skipNotifier: true });
+				moved++;
+			}
+			else failed++;
+		}
+		Zotero.Prefs.set('translators.hicite.keyStore', 'field');
+		this.schedule(new Set([scope.libraryID]));
+		return { moved, failed, plan, cancelled: false };
+	},
+
+	async moveKeysFromMenu(ctx, scope) {
+		let row = ctx.collectionTreeRows[0];
+		let where = `"${row.isCollection() ? row.ref.name : Zotero.Libraries.getName(scope.libraryID)}"`;
+		let r = await this.moveKeys(scope, { confirm: plan => this.confirmKeyMove(this.describeKeyMove(plan, where)) });
+		if (!r.cancelled) this.notify(`Moved ${r.moved} keys to the Citation Key field` + (r.failed ? ` (${r.failed} items cannot hold one)` : ''));
+	},
+
 	registerMenus() {
 		let reg = (target, menus) => {
 			let id = Zotero.MenuManager.registerMenu({
@@ -586,6 +686,11 @@ HiCite = {
 				menuType: 'menuitem', l10nID: 'hicite-menu-regenerate-all',
 				onShowing: (event, ctx) => ctx.setVisible(!!single(ctx)),
 				onCommand: (event, ctx) => this.regenerateFromMenu(ctx, single(ctx), false),
+			},
+			{
+				menuType: 'menuitem', l10nID: 'hicite-menu-move-keys',
+				onShowing: (event, ctx) => ctx.setVisible(!!single(ctx)),
+				onCommand: (event, ctx) => this.moveKeysFromMenu(ctx, single(ctx)),
 			},
 			{
 				menuType: 'menuitem', l10nID: 'hicite-menu-autoexport-stop',

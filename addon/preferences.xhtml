@@ -14,6 +14,15 @@
 			</menulist>
 		</hbox>
 		<hbox align="center">
+			<label value="Key store:" control="hicite-keyStore"/>
+			<menulist id="hicite-keyStore" native="true" preference="extensions.zotero.translators.hicite.keyStore">
+				<menupopup>
+					<menuitem label="The Extra field (a &quot;Citation Key:&quot; line)" value="extra"/>
+					<menuitem label="Zotero's Citation Key field (shared with Better BibTeX)" value="field"/>
+				</menupopup>
+			</menulist>
+		</hbox>
+		<hbox align="center">
 			<label value="Case keys:" control="hicite-caseKeys"/>
 			<menulist id="hicite-caseKeys" native="true" preference="extensions.zotero.translators.hicite.caseKeys">
 				<menupopup>
@@ -23,7 +32,9 @@
 			</menulist>
 		</hbox>
 		<description>
-			Keys are pinned in each item's Extra field the first time they are needed. A changed setting applies to
+			Keys are pinned in each item the first time they are needed (in the place chosen above; to move existing keys
+			into Zotero's Citation Key field, right-click a collection and choose "hicite: Move Keys to Citation Key Field").
+			If Better BibTeX also writes that field, turn off its automatic key generation, or it can overwrite hicite's keys. A changed setting applies to
 			items that have no key yet; to re-key existing items, right-click them (or a collection) and choose
 			"hicite: Regenerate Citation Key", "hicite: Regenerate Case Keys" or "hicite: Regenerate All Citation Keys".
 		</description>

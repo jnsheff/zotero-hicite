@@ -15,6 +15,7 @@
 	},
 	"hiddenPrefs": {
 		"hicite.keySource": "own",
+		"hicite.keyStore": "extra",
 		"hicite.caseKeys": "shorttitle",
 		"hicite.shortTitleInline": true,
 		"hicite.omitRedundantSite": true,
@@ -52,7 +53,7 @@ var SKIP_TYPES = { note: 1, attachment: 1, annotation: 1 };
 // ---------------------------------------------------------------- settings
 
 var DEFAULTS = {
-	keySource: 'own', caseKeys: 'shorttitle', shortTitleInline: true, omitRedundantSite: true, includeUrls: true, maxAuthors: '0'
+	keySource: 'own', keyStore: 'extra', caseKeys: 'shorttitle', shortTitleInline: true, omitRedundantSite: true, includeUrls: true, maxAuthors: '0'
 };
 
 function setting(name) {
@@ -218,8 +219,10 @@ function usableKey(k) {
 // when the key source setting is "adopt", the native Citation Key field (Better BibTeX).
 function pinnedKey(item) {
 	var m = /^\s*Citation Key\s*:\s*(\S+)\s*$/im.exec(item.extra || '');
+	// A key pinned in Extra comes first; Zotero's Citation Key field is used when it is the key store
+	// or the key source is "adopt".
 	var candidates = [m ? m[1] : ''];
-	if (setting('keySource') === 'adopt') candidates.push(item.citationKey || '');
+	if (setting('keySource') === 'adopt' || setting('keyStore') === 'field') candidates.push(item.citationKey || '');
 	for (var i = 0; i < candidates.length; i++) {
 		if (usableKey(candidates[i])) return candidates[i];
 	}

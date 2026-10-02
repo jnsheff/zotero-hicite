@@ -20,6 +20,7 @@ run '^types OK'              "$JSC" test/types-jsc.js
 run '^settings OK'          "$JSC" test/settings-jsc.js
 run '^pane OK'              "$JSC" test/pane-jsc.js
 run '^keys OK'              "$JSC" test/keys-jsc.js
+run '^keystore OK'          "$JSC" test/keystore-jsc.js
 run '^bootstrap OK'         "$JSC" test/bootstrap-jsc.js
 run '^fill-reporter OK'     "$JSC" test/fill-reporter-jsc.js
 run '^runjob OK'            "$JSC" test/runjob-jsc.js

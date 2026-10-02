@@ -5,8 +5,8 @@ A **Zotero 9 and 10** add-on that works like Better BibTeX, but targets the
 not read BibTeX; its native input is its own reference definitions
 (`\defjrnart{key}{author=..., title=...}`), which is what this exports.
 
-* **Stable citation keys.** Keys are pinned in *Extra* as `Citation Key: haigh2024` the first time
-  they are needed, so they never change under you. By default the add-on generates its own
+* **Stable citation keys.** Keys are pinned in *Extra* as `Citation Key: haigh2024` (or, with the *Key store*
+  setting, in Zotero's own Citation Key field; see below) the first time they are needed, so they never change under you. By default the add-on generates its own
   (family name + year, disambiguated with `a`, `b`, ...); people stored in Zotero as a single name
   ("Thomas Haigh") are recognized and keyed on the family name, institutions on their whole name
   (`anthropicpbc2025`). **Cases** are keyed by their Short Title, or else the first party without
@@ -37,7 +37,8 @@ not read BibTeX; its native input is its own reference definitions
   before "et al.", whether Short Titles become short-form names, whether a website's title is dropped when
   it repeats the author, URLs, and your auto-exports (each with its own *Include publisher* checkbox and a *Stop* button).
 * **Item menu.** *hicite: Pin / Regenerate / Copy Citation Keys*; on a library or collection,
-  *hicite: Regenerate Case Keys* and *hicite: Regenerate All Citation Keys…* (both ask for confirmation). Copy yields
+  *hicite: Regenerate Case Keys*, *hicite: Regenerate All Citation Keys…* and *hicite: Move Keys to Citation Key Field…*
+  (all ask for confirmation). Copy yields
   `key1; key2`, ready to paste into `\sentence{...}`.
 
 ## Install
@@ -119,6 +120,23 @@ Court of Appeals, Federal Circuit") are only rewritten if you opt in.
 It is meant to be pasted into Tools > Developer > Run JavaScript. It defaults to a dry run, skips
 shared group libraries unless told otherwise, refuses to apply without a backup confirmation,
 and can be reverted step by step. Read the comment at the top of the file first.
+
+## Key store: Extra or Zotero's Citation Key field
+
+Settings > *Key store* chooses where new keys are written: a `Citation Key:` line in **Extra** (the default) or
+Zotero's own **Citation Key field**, the one Better BibTeX also uses. Reading is the same either way: a key in
+Extra comes first, then (with the field store, or *Use Better BibTeX's key*) the field, so switching the setting
+never changes a key you already cite. The export translator reads keys the same way.
+
+To move existing keys, right-click a collection or library and choose *hicite: Move Keys to Citation Key
+Field…*. The confirmation lists what will happen before anything is changed: how many keys move, which keys
+replace a *different* key already in the field (the hicite key wins, since it is the one your documents cite),
+and how many items are left alone. Items are saved quietly (no change to Date Modified, no notification to other
+add-ons), the `Citation Key:` line is removed from Extra, and the setting is switched to the field. Item types
+without the field keep their key in Extra.
+
+If Better BibTeX also writes that field, turn off its automatic key generation, or it can overwrite hicite's keys
+when an item changes. Items that have only a Better BibTeX key keep it until you regenerate them.
 
 ## Better BibTeX
 
