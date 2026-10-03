@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "hicite Export for Zotero",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Pins stable citation keys and exports (and auto-exports) references as hicite reference definitions, in the manner of Better BibTeX.",
   "icons": {
     "48": "icon.svg",
