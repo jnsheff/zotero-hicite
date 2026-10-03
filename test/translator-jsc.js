@@ -170,6 +170,13 @@ e = gen({ itemType: 'journalArticle', title: 'Review of <i>Verbal Behavior</i> &
 has(e, 'title={Review of \\emph{Verbal Behavior} \\& More},', 'italics in a title'); has(e, 'rep={Journal of X},', 'no markup in a journal name'); has(e, 'hereinafter={Chomsky, Review of \\emph{Verbal Behavior}},', 'italics in an Extra parameter');
 has(gen({ itemType: 'book', title: 'A <b>bold</b> <span class="x">word</span>', date: '2000', extra: 'Citation Key: tags' }), 'title={A Bold Word},', 'other tags are dropped');
 
+
+// presentations are hicite speeches
+e = gen({ itemType: 'presentation', title: 'History of Natural Language Processing', place: 'Stanford University', date: '2020-01-05', url: 'https://x.org/s', creators: [person('Christopher', 'Manning', 'presenter')], extra: 'Citation Key: talk' });
+has(e, '\\defspeech{talk}', 'presentation is a speech'); has(e, 'author={Christopher {Manning}},', 'presenter as author'); has(e, 'type={Presentation},', 'default type'); has(e, 'place={Stanford University},', 'place'); has(e, 'name={History of Natural Language Processing},', 'title'); has(e, 'year={jan 5 2020},', 'date');
+
+has(gen({ itemType: 'statute', nameOfAct: 'Some Act', publicLawNumber: '116-283', codeNumber: '134', code: 'Stat.', pages: '4523', dateEnacted: '2021-01-01', extra: 'hicite-doctype: statsess\nCitation Key: sess' }), 'year={jan 1 2021},', 'a session law is dated in hicite syntax');
+
 // letters
 e = gen({ itemType: 'letter', title: 'Re: Zarya of the Dawn', date: '2023-02-21', creators: [{ creatorType: 'author', name: 'United States Copyright Office', fieldMode: 1, lastName: 'United States Copyright Office' }, { creatorType: 'recipient', firstName: 'Van', lastName: 'Lindberg' }], extra: 'Citation Key: zarya' });
 has(e, '\\defletter{zarya}', 'letter with a sender and recipient'); has(e, 'instauth={United States Copyright Office}', 'institutional sender'); has(e, 'to={Van Lindberg}', 'recipient');

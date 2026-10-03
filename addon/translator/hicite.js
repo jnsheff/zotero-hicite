@@ -882,6 +882,18 @@ function emitBase(item, key) {
 				.inline(item).url(item);
 			return [d];
 
+		case 'presentation':
+			// a talk or slide deck: hicite's speech type ("Presentation: Title (date)")
+			d = new Def('speech', key);
+			var speakers = creatorsOf(item, 'presenter');
+			if (!speakers.length) speakers = creatorsOf(item, 'author');
+			d.namesOf(speakers, 'author', 'instauth', maxAuthors())
+				.title('name', pick(item, 'title'))
+				.set('type', pick(item, 'presentationType') || 'Presentation')
+				.set('place', pick(item, 'place', 'meetingName'))
+				.set('year', dateOf(item)).inline(item).url(item);
+			return [d];
+
 		case 'case':
 			return caseDefs(item, key);
 
@@ -1049,7 +1061,7 @@ function emit(item, key) {
 		d = new Def('statsess', key);
 		d.set('name', pick(item, 'nameOfAct', 'title')).set('number', pick(item, 'publicLawNumber'))
 			.set('vol', pick(item, 'codeNumber', 'volume')).set('rep', pick(item, 'code'))
-			.set('page', firstPage(pick(item, 'pages'))).set('year', pick(item, 'dateEnacted', 'date'))
+			.set('page', firstPage(pick(item, 'pages'))).set('year', dateOf(item))
 			.inline(item).url(item);
 		return [withExtras(item, d)];
 	}
