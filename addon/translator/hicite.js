@@ -264,8 +264,9 @@ function texUnicode(s) {
 }
 
 // Escape plain text for TeX and keep braces balanced (keyval requires it).
-function tex(s) {
-	s = String(s).replace(/\s+/g, ' ').trim();
+function texPlain(s, keepEdges) {
+	s = String(s).replace(/\s+/g, ' ');
+	if (!keepEdges) s = s.trim();
 	var depth = 0, ok = true;
 	for (var i = 0; i < s.length; i++) {
 		if (s[i] === '{') depth++;
@@ -277,8 +278,29 @@ function tex(s) {
 		.replace(/\\/g, '\\textbackslash{}')
 		.replace(/([&%#_$])/g, '\\$1')
 		.replace(/~/g, '\\textasciitilde{}')
-		.replace(/\^/g, '\\textasciicircum{}')).replace(/\s+/g, ' ').trim();
+		.replace(/\^/g, '\\textasciicircum{}')).replace(/\s+/g, ' ');
 }
+
+// Zotero titles (and Extra values) may carry <i>...</i> / <em>...</em>: written as \emph{...}, which
+// toggles, so a title already set in italics comes out roman for the italicized part, as Bluebook wants.
+// Other tags (<b>, <sup>, <span>...) are dropped. With `plain` (fields hicite builds control-sequence
+// names from, or names of people) the tags are dropped and nothing is italicized.
+function tex(s, plain) {
+	s = String(s);
+	if (!/<\/?[a-z][^>]*>/i.test(s)) return texPlain(s).trim();
+	var out = '', open = 0;
+	s.split(/(<\/?[a-z][^>]*>)/i).forEach(function (part) {
+		var m = /^<(\/?)([a-z]+)[^>]*>$/i.exec(part);
+		if (!m) { out += texPlain(part.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>'), true); return; }
+		if (plain || !/^(i|em)$/i.test(m[2])) return;
+		if (!m[1]) { out += '\\emph{'; open++; }
+		else if (open) { out += '}'; open--; }
+	});
+	while (open--) out += '}';
+	return out.replace(/\s+/g, ' ').trim();
+}
+// fields that must stay free of markup
+var NO_MARKUP = { rep: 1, journal: 1, instauth: 1, insted: 1, publisher: 1, court: 1, p: 1, d: 1, docket: 1, vol: 1, page: 1, number: 1, type: 1, edtype: 1 };
 
 function firstPage(p) {
 	if (!p) return '';
@@ -309,7 +331,7 @@ var MINOR_WORDS = /^(a|an|the|and|but|or|nor|for|so|yet|as|at|by|in|of|off|on|pe
 var ACRONYMS = /^(AI|ML|US|USA|U\.S\.|EU|UK|UN|NBER|SSRN|DNA|RNA|LLMS?|GPT|NLP|IP|FTC|FDA|CAFC|II|III|IV|VI|VII|VIII|IX|XI|XII)$/;
 
 function capWord(w) { // capitalize the first letter, skipping leading punctuation
-	var m = /^([^A-Za-z\u00C0-\u024F]*)([A-Za-z\u00C0-\u024F])(.*)$/.exec(w);
+	var m = /^((?:<[^>]*>|[^A-Za-z\u00C0-\u024F<])*)([A-Za-z\u00C0-\u024F])(.*)$/.exec(w);
 	return m ? m[1] + m[2].toUpperCase() + m[3] : w;
 }
 // English title case does not suit a title in another language: use the item's Language field, or
@@ -325,7 +347,7 @@ function titleCase(s) {
 	if (!setting('titleCase') || !s || foreignTitle(s)) return s;
 	var letters = s.replace(/[^A-Za-z]/g, '');
 	var shout = letters.length > 3 && letters === letters.toUpperCase() && s.split(/\s+/).length > 1;
-	var words = s.split(/(\s+)/), last = -1, i;
+	var words = s.split(/(\s+(?![^<]*>))/), last = -1, i; // (not inside a tag)
 	for (i = 0; i < words.length; i++) if (!/^\s*$/.test(words[i])) last = i;
 	var capNext = true;
 	for (i = 0; i < words.length; i++) {
@@ -333,14 +355,14 @@ function titleCase(s) {
 		if (/^\s*$/.test(w)) continue;
 		var out = w;
 		if (shout && !ACRONYMS.test(w.replace(/[^A-Za-z.]/g, ''))) out = w.toLowerCase();
-		var core = out.replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, '');
+		var core = out.replace(/<[^>]*>/g, '').replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, '');
 		var parts = out.split('-'), pi;
-		if (/[A-Z]/.test(core.slice(1)) || /https?:|@|\//.test(out) || /^[^A-Za-z]*\d/.test(out)) {
+		if (/^&[a-z#0-9]+;/i.test(out) || /[A-Z]/.test(core.slice(1)) || /https?:|@|\//.test(out.replace(/<[^>]*>/g, '')) || /^[^A-Za-z]*\d/.test(out.replace(/<[^>]*>/g, ''))) {
 			// already has internal capitals / URL / number: leave it
 		}
 		else {
 			for (pi = 0; pi < parts.length; pi++) {
-				var pc = parts[pi].replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, '');
+				var pc = parts[pi].replace(/<[^>]*>/g, '').replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, '');
 				var first = pi === 0 && capNext, lastWord = i === last && pi === parts.length - 1;
 				if (!pc || /[A-Z]/.test(pc.slice(1))) continue;
 				// the first element of a hyphenated word is capitalized even if it is a short preposition (Near-Verbatim)
@@ -425,7 +447,7 @@ Def.prototype.raw = function (k, v) {
 	return this;
 };
 Def.prototype.set = function (k, v) {
-	if (v !== '' && v !== undefined && v !== null) this.raw(k, tex(v));
+	if (v !== '' && v !== undefined && v !== null) this.raw(k, tex(v, NO_MARKUP[k]));
 	return this;
 };
 Def.prototype.title = function (k, v) { return this.set(k, titleCase(v)); };   // a work's title
@@ -447,8 +469,8 @@ Def.prototype.namesOf = function (cs, personal, inst, cap) {
 	cs.slice(0, limit).forEach(function (c, i) {
 		var etal = limit < n && i === limit - 1 ? ' et al.' : '';
 		var p = personParts(c);
-		if (p) self.raw(personal, tex(p.given) + ' {' + tex(p.family) + (p.suffix ? ' {' + tex(p.suffix) + '}' : '') + '}' + etal);
-		else if (c.name || c.lastName) self.raw(inst, tex(c.name || c.lastName) + etal);
+		if (p) self.raw(personal, tex(p.given, true) + ' {' + tex(p.family, true) + (p.suffix ? ' {' + tex(p.suffix, true) + '}' : '') + '}' + etal);
+		else if (c.name || c.lastName) self.raw(inst, tex(c.name || c.lastName, true) + etal);
 	});
 	return this;
 };
@@ -552,7 +574,7 @@ function withExtras(item, d) {
 		if (FLAG_PARAMS[e.p]) {
 			if (/^(1|y|yes|true|on)$/i.test(e.v)) d.lines.push('    ' + e.p + ',');
 		}
-		else d.raw(e.p, RAW_PARAMS[e.p] ? e.v : tex(e.v));
+		else d.raw(e.p, RAW_PARAMS[e.p] ? e.v : tex(e.v, NO_MARKUP[e.p]));
 	});
 	return d;
 }

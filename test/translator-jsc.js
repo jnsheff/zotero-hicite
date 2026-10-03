@@ -164,6 +164,12 @@ eq((gen(longList, { longLists: '0' }).match(/    author=/g) || []).length, 10, '
 eq((gen(longList, { longLists: '10' }).match(/    author=/g) || []).length, 10, 'a list no longer than the limit is kept whole');
 eq((gen(longList, { maxAuthors: '4' }).match(/    author=/g) || []).length, 4, 'an explicit cap wins');
 
+
+// <i> in a title or in an Extra value becomes \emph; never in names or journal names
+e = gen({ itemType: 'journalArticle', title: 'Review of <i>Verbal Behavior</i> &amp; More', publicationTitle: 'Journal of <i>X</i>', volume: '1', pages: '2', date: '1959', creators: [person('N', 'Chomsky')], extra: 'hicite-hereinafter: Chomsky, Review of <i>Verbal Behavior</i>\nCitation Key: ital' });
+has(e, 'title={Review of \\emph{Verbal Behavior} \\& More},', 'italics in a title'); has(e, 'rep={Journal of X},', 'no markup in a journal name'); has(e, 'hereinafter={Chomsky, Review of \\emph{Verbal Behavior}},', 'italics in an Extra parameter');
+has(gen({ itemType: 'book', title: 'A <b>bold</b> <span class="x">word</span>', date: '2000', extra: 'Citation Key: tags' }), 'title={A Bold Word},', 'other tags are dropped');
+
 // letters
 e = gen({ itemType: 'letter', title: 'Re: Zarya of the Dawn', date: '2023-02-21', creators: [{ creatorType: 'author', name: 'United States Copyright Office', fieldMode: 1, lastName: 'United States Copyright Office' }, { creatorType: 'recipient', firstName: 'Van', lastName: 'Lindberg' }], extra: 'Citation Key: zarya' });
 has(e, '\\defletter{zarya}', 'letter with a sender and recipient'); has(e, 'instauth={United States Copyright Office}', 'institutional sender'); has(e, 'to={Van Lindberg}', 'recipient');
