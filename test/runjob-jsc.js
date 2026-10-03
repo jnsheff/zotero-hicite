@@ -25,7 +25,7 @@ Export.prototype = {
 	translate: function () {
 		var self = this; exportsRun++;
 		return Promise.resolve().then(function () {
-			files[self.loc.path] = self.items.map(function (i) { return '\\defbook{' + i.getField('extra').replace('Citation Key: ', '') + '}'; }).join('\n') + '\n';
+			files[self.loc.path] = self.items.map(function (i) { return '\\defbook{' + (i.getField('citationKey') || i.getField('extra').replace('Citation Key: ', '')) + '}'; }).join('\n') + '\n';
 			self.handlers.done(self, true);
 		});
 	}
@@ -37,7 +37,7 @@ var Zotero = {
 	Search: function () { this.addCondition = function () {}; this.search = function () { return Promise.resolve(scopeIDs.slice()); }; },
 	Items: { getAsync: function (ids) { return Promise.resolve(ids.map(function (i) { return items[i]; }).filter(Boolean)); } },
 	Collections: { getByLibraryAndKey: function () { return collectionExists ? {} : false; } },
-	CreatorTypes: { getPrimaryIDForType: function () { return 1; } },
+	CreatorTypes: { getPrimaryIDForType: function () { return 1; }, getName: function () { return 'author'; } },
 	Translators: {
 		init: function () { initCalls++; return new Promise(function (r) { setTimeout(function () { translatorsReady = true; registered = 'ready-after-init'; r(); }, 0); }); },
 		reinit: function () { reinits++; registered = true; return Promise.resolve(); },
@@ -76,8 +76,8 @@ HC.enqueue(['j1']).then(function () {
 	eq(initCalls >= 1, true, 'Translators.init() awaited before get()');
 	eq(exportsRun, 1, 'exported once');
 	eq(Object.keys(files).indexOf('/tmp/hicite-j1.tex'), -1, 'temp file removed');
-	eq(files['/out/refs.tex'], '\\defbook{alpha2001}\n\\defbook{beta2002}\n', 'target written with pinned keys (item 1 pinned first)');
-	eq(savedItems, 1, 'only the unpinned item was saved');
+	eq(files['/out/refs.tex'], '\\defbook{alphaOne2001}\n\\defbook{beta2002}\n', 'target written with the keys (item 1 keyed first, item 2\'s old Extra key moved into the field)');
+	eq(savedItems, 2, 'the unkeyed item was keyed and the one with an Extra key moved');
 	eq(notices, [], 'no error notices');
 	// second run, nothing changed: no rewrite
 	IOUtils.writes = [];

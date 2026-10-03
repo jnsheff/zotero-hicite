@@ -12,7 +12,8 @@
   "publicationTitle": "Harvard Law Review",
   "volume": "48",
   "pages": "198-230",
-  "date": "1934-12-01"
+  "date": "1934-12-01",
+  "extra": "Citation Key: griswold1934a"
  },
  {
   "itemType": "book",
@@ -31,7 +32,8 @@
   ],
   "publisher": "LexisNexis",
   "date": "2014",
-  "edition": "2nd ed."
+  "edition": "2nd ed.",
+  "extra": "Citation Key: nimmer2014"
  },
  {
   "itemType": "bookSection",
@@ -41,7 +43,7 @@
    {
     "creatorType": "author",
     "firstName": "Ann",
-    "lastName": "\u00c9crivain"
+    "lastName": "Écrivain"
    },
    {
     "creatorType": "editor",
@@ -50,7 +52,8 @@
    }
   ],
   "pages": "45-60",
-  "date": "2010"
+  "date": "2010",
+  "extra": "Citation Key: ecrivain2010"
  },
  {
   "itemType": "newspaperArticle",
@@ -64,7 +67,8 @@
   ],
   "publicationTitle": "New York Times Magazine",
   "pages": "MM30",
-  "date": "2016-01-01"
+  "date": "2016-01-01",
+  "extra": "Citation Key: duhigg2016"
  },
  {
   "itemType": "webpage",
@@ -78,7 +82,8 @@
   ],
   "websiteTitle": "BBC News",
   "date": "2014-05-18",
-  "url": "http://www.bbc.com/news/a%20b?x=1&y=2"
+  "url": "http://www.bbc.com/news/a%20b?x=1&y=2",
+  "extra": "Citation Key: mitzman2014"
  },
  {
   "itemType": "case",
@@ -86,7 +91,8 @@
   "reporter": "U.S.",
   "reporterVolume": "33",
   "firstPage": "591",
-  "date": "1834"
+  "date": "1834",
+  "extra": "Citation Key: wheaton"
  },
  {
   "itemType": "report",
@@ -99,14 +105,16 @@
    }
   ],
   "institution": "FTC",
-  "date": "2019-06"
+  "date": "2019-06",
+  "extra": "Citation Key: federaltradecommission2019"
  },
  {
   "itemType": "statute",
   "nameOfAct": "Patent Act",
   "code": "U.S.C.",
   "codeNumber": "35",
-  "section": "101"
+  "section": "101",
+  "extra": "Citation Key: ref"
  },
  {
   "itemType": "thesis",
@@ -119,7 +127,8 @@
     "lastName": "Doe"
    }
   ],
-  "date": "2001"
+  "date": "2001",
+  "extra": "Citation Key: doe2001"
  },
  {
   "itemType": "journalArticle",
@@ -143,33 +152,37 @@
   "creators": [
    {
     "creatorType": "author",
-    "firstName": "Mar\u00eda Jos\u00e9",
-    "lastName": "de la Pe\u00f1a"
+    "firstName": "María José",
+    "lastName": "de la Peña"
    }
   ],
   "publicationTitle": "J. of \"Odd\" Things",
   "volume": "7",
   "pages": "e12-e19",
-  "date": "2020-03-15"
+  "date": "2020-03-15",
+  "extra": "Citation Key: delapena2020"
  },
  {
   "itemType": "webpage",
   "title": "A page with a fragment",
   "websiteTitle": "Example",
   "date": "2021",
-  "url": "https://example.com/a_b#frag?q=100%25"
+  "url": "https://example.com/a_b#frag?q=100%25",
+  "extra": "Citation Key: page2021"
  },
  {
   "itemType": "case",
   "caseName": "In re Smith",
   "docketNumber": "No. 12-345",
   "court": "D. Mass.",
-  "date": "2013-05-01"
+  "date": "2013-05-01",
+  "extra": "Citation Key: inresmith"
  },
  {
   "itemType": "book",
   "title": "The Untitled Anonymous Work",
-  "date": "1999"
+  "date": "1999",
+  "extra": "Citation Key: untitled1999"
  },
  {
   "itemType": "journalArticle",
@@ -184,7 +197,8 @@
   "publicationTitle": "Yale Law Journal",
   "volume": "100",
   "pages": "1",
-  "date": "2000"
+  "date": "2000",
+  "extra": "Citation Key: anderson2000"
  },
  {
   "itemType": "case",
@@ -193,7 +207,8 @@
   "reporterVolume": "567",
   "firstPage": "709",
   "dateDecided": "2012-06-28 June 28, 2012",
-  "citationKey": "2012"
+  "citationKey": "2012",
+  "extra": "Citation Key: unitedstates"
  },
  {
   "itemType": "book",
@@ -206,7 +221,8 @@
    }
   ],
   "date": "2015",
-  "citationKey": "tiveNativeKey2015"
+  "citationKey": "tiveNativeKey2015",
+  "extra": "Citation Key: tive2015"
  },
  {
   "itemType": "book",
@@ -270,7 +286,8 @@
   "archiveID": "arXiv:1706.03762",
   "date": "2023-08-02",
   "url": "http://arxiv.org/abs/1706.03762",
-  "shortTitle": "Attention"
+  "shortTitle": "Attention",
+  "extra": "Citation Key: vaswani2023"
  },
  {
   "itemType": "preprint",
@@ -283,7 +300,8 @@
    }
   ],
   "date": "2019-09-03",
-  "url": "https://arxiv.org/abs/1909.01285v2"
+  "url": "https://arxiv.org/abs/1909.01285v2",
+  "extra": "Citation Key: author2019"
  },
  {
   "itemType": "preprint",
@@ -299,7 +317,8 @@
   ],
   "repository": "Social Science Research Network",
   "date": "April 28, 2026",
-  "url": "https://papers.ssrn.com/abstract=6525800"
+  "url": "https://papers.ssrn.com/abstract=6525800",
+  "extra": "Citation Key: bednar2026"
  },
  {
   "itemType": "preprint",
@@ -312,7 +331,8 @@
    }
   ],
   "date": "2020",
-  "url": "https://example.org/x"
+  "url": "https://example.org/x",
+  "extra": "Citation Key: wen2020"
  },
  {
   "itemType": "conferencePaper",
@@ -332,7 +352,8 @@
   "proceedingsTitle": "Proceedings of EMNLP-CoNLL",
   "date": "June 2007",
   "pages": "858-867",
-  "url": "https://aclanthology.org/D07-1090/"
+  "url": "https://aclanthology.org/D07-1090/",
+  "extra": "Citation Key: brants2007"
  },
  {
   "itemType": "conferencePaper",
@@ -346,7 +367,8 @@
   ],
   "proceedingsTitle": "Some Workshop",
   "date": "2001",
-  "url": "http://proceedings.mlr.press/r3/x.html"
+  "url": "http://proceedings.mlr.press/r3/x.html",
+  "extra": "Citation Key: talk2001"
  },
  {
   "itemType": "encyclopediaArticle",
@@ -362,7 +384,8 @@
   ],
   "encyclopediaTitle": "The Stanford Encyclopedia of Philosophy",
   "date": "2023",
-  "url": "https://plato.stanford.edu/entries/behaviorism/"
+  "url": "https://plato.stanford.edu/entries/behaviorism/",
+  "extra": "Citation Key: graham2023"
  },
  {
   "itemType": "webpage",
@@ -378,7 +401,8 @@
   ],
   "websiteTitle": "Communications of the ACM",
   "date": "January 26, 2024",
-  "url": "https://cacm.acm.org/x"
+  "url": "https://cacm.acm.org/x",
+  "extra": "Citation Key: haigh2024"
  },
  {
   "itemType": "webpage",
@@ -394,7 +418,8 @@
   ],
   "websiteTitle": "OpenAI",
   "date": "March 13, 2024",
-  "url": "https://openai.com/x"
+  "url": "https://openai.com/x",
+  "extra": "Citation Key: openai2024"
  },
  {
   "itemType": "webpage",
@@ -410,7 +435,8 @@
   ],
   "websiteTitle": "Anthropic",
   "date": "October 8, 2025",
-  "url": "https://www.anthropic.com/legal"
+  "url": "https://www.anthropic.com/legal",
+  "extra": "Citation Key: anthropicpbc2025"
  },
  {
   "itemType": "webpage",
@@ -426,7 +452,8 @@
   ],
   "websiteTitle": "Something Else",
   "date": "May 30, 2023",
-  "url": "https://aistatement.com"
+  "url": "https://aistatement.com",
+  "extra": "Citation Key: centerforaisafety2023"
  },
  {
   "itemType": "journalArticle",
@@ -450,7 +477,8 @@
   "publicationTitle": "J. of Things",
   "volume": "1",
   "pages": "5",
-  "date": "2018"
+  "date": "2018",
+  "extra": "Citation Key: vanmerrienboer2018"
  },
  {
   "itemType": "journalArticle",
@@ -464,7 +492,8 @@
   ],
   "publicationTitle": "Web Journal",
   "date": "2024",
-  "url": "https://example.org/online"
+  "url": "https://example.org/online",
+  "extra": "Citation Key: line2024"
  },
  {
   "itemType": "journalArticle",
@@ -480,7 +509,8 @@
   "volume": "12",
   "pages": "100-120",
   "date": "2001",
-  "url": "https://jstor.org/x"
+  "url": "https://jstor.org/x",
+  "extra": "Citation Key: er2001"
  },
  {
   "itemType": "case",
@@ -490,7 +520,8 @@
   "reporterVolume": "545",
   "firstPage": "913",
   "dateDecided": "2005-06-27",
-  "court": ""
+  "court": "",
+  "extra": "Citation Key: grokster"
  },
  {
   "itemType": "case",
@@ -500,7 +531,8 @@
   "firstPage": "1157",
   "court": "M.D. Fla.",
   "dateDecided": "2025",
-  "url": "https://example.org/ignored-because-reporter"
+  "url": "https://example.org/ignored-because-reporter",
+  "extra": "Citation Key: garcia"
  },
  {
   "itemType": "case",
@@ -508,14 +540,16 @@
   "docketNumber": "24-7700",
   "court": "9th Cir.",
   "dateDecided": "September 16, 2026",
-  "url": "https://cdn.ca9.uscourts.gov/24-7700.pdf"
+  "url": "https://cdn.ca9.uscourts.gov/24-7700.pdf",
+  "extra": "Citation Key: doe"
  },
  {
   "itemType": "case",
   "caseName": "In re Nimitz Technologies LLC",
   "docketNumber": "2023-103",
   "court": "Fed. Cir.",
-  "dateDecided": "2022-12-08"
+  "dateDecided": "2022-12-08",
+  "extra": "Citation Key: inrenimitztechnologies"
  },
  {
   "itemType": "book",
@@ -528,7 +562,8 @@
     "lastName": "Chomsky"
    }
   ],
-  "date": "1979"
+  "date": "1979",
+  "extra": "Citation Key: chomsky1979"
  },
  {
   "itemType": "journalArticle",
@@ -573,7 +608,8 @@
   "publicationTitle": "Big Journal",
   "volume": "3",
   "pages": "1",
-  "date": "2020"
+  "date": "2020",
+  "extra": "Citation Key: alpha2020"
  },
  {
   "itemType": "journalArticle",
@@ -593,7 +629,8 @@
   "publicationTitle": "Small Journal",
   "volume": "2",
   "pages": "9",
-  "date": "2019"
+  "date": "2019",
+  "extra": "Citation Key: one2019"
  },
  {
   "itemType": "report",
@@ -623,7 +660,8 @@
   ],
   "reportNumber": "R-1",
   "institution": "Somewhere",
-  "date": "2020"
+  "date": "2020",
+  "extra": "Citation Key: alphacommittee2020"
  },
  {
   "itemType": "journalArticle",
@@ -661,7 +699,8 @@
   "publicationTitle": "Names Journal",
   "volume": "4",
   "pages": "7",
-  "date": "2021"
+  "date": "2021",
+  "extra": "Citation Key: dzieza2021"
  },
  {
   "itemType": "webpage",
@@ -677,7 +716,8 @@
   ],
   "websiteTitle": "Somewhere Else",
   "date": "2022",
-  "url": "https://example.edu/x"
+  "url": "https://example.edu/x",
+  "extra": "Citation Key: universityofcaliforniasandiego2022"
  },
  {
   "itemType": "book",
@@ -709,7 +749,8 @@
     "lastName": "EdFour"
    }
   ],
-  "date": "2018"
+  "date": "2018",
+  "extra": "Citation Key: writer2018"
  },
  {
   "itemType": "bookSection",
@@ -728,7 +769,8 @@
   ],
   "bookTitle": "Image, Music, Text",
   "date": "1977",
-  "pages": "142-148"
+  "pages": "142-148",
+  "extra": "Citation Key: barthes1977"
  },
  {
   "itemType": "bookSection",
@@ -752,7 +794,8 @@
   ],
   "bookTitle": "Anton Chekhov's Plays",
   "date": "1977",
-  "pages": "1-60"
+  "pages": "1-60",
+  "extra": "Citation Key: chekhov1977"
  },
  {
   "itemType": "bookSection",
@@ -786,7 +829,8 @@
   ],
   "bookTitle": "A Shared Volume",
   "date": "2001",
-  "pages": "3-9"
+  "pages": "3-9",
+  "extra": "Citation Key: author2001"
  },
  {
   "itemType": "bookSection",
@@ -815,7 +859,8 @@
   ],
   "bookTitle": "A Translated Volume",
   "date": "1999",
-  "pages": "7-20"
+  "pages": "7-20",
+  "extra": "Citation Key: writer1999"
  },
  {
   "itemType": "book",
@@ -832,7 +877,8 @@
     "lastName": "Trans"
    }
   ],
-  "date": "1990"
+  "date": "1990",
+  "extra": "Citation Key: scribe1990"
  },
  {
   "itemType": "book",
@@ -854,7 +900,8 @@
     "lastName": "Renderer"
    }
   ],
-  "date": "1995"
+  "date": "1995",
+  "extra": "Citation Key: composer1995"
  },
  {
   "itemType": "document",

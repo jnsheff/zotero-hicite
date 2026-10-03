@@ -43,25 +43,49 @@ e = entry(out, 'grokster'); has(e, 'p={Metro-Goldwyn-Mayer Studios Inc.}', 'firs
 has(entry(out, 'garcia'), 'd={Character Technologies Inc.}', '"v" without a period splits too'); hasNot(entry(out, 'garcia'), 'url=', 'case with a reporter has no URL');
 has(entry(out, 'doe'), 'url=', 'case without a reporter keeps its URL'); has(entry(out, 'doe'), 'docket={24-7700}', 'docket');
 has(entry(out, 'inrenimitztechnologies'), 'name={In re Nimitz Technologies LLC}', 'no " v. ": a single name');
-eq(/\\defcase\{(grokster|garcia|doe|inrenimitztechnologies)\}/g.test(out), true, 'case keys: Short Title / first party, no year');
-
-// keys
-eq(/\\def[a-z]+\{(wheaton|griswold1934|nimmer2014)\}/.test(out), true, 'author+year keys for other types');
 
 // settings switch each rule off
 has(one(function (i) { return i.title === 'Attention Is All You Need'; }, { shortTitleInline: false }), 'title={Attention Is All You Need}', 'sanity');
 hasNot(one(function (i) { return i.title === 'Attention Is All You Need'; }, { shortTitleInline: false }), 'inline=', 'shortTitleInline off');
 hasNot(one(function (i) { return i.title === 'Attention Is All You Need'; }, { includeUrls: false }), 'url=', 'includeUrls off');
 has(one(function (i) { return i.title === 'Memory and New Controls'; }, { omitRedundantSite: false }), 'journal={OpenAI}', 'omitRedundantSite off keeps the site title');
-has(one(function (i) { return i.caseName === 'Metro-Goldwyn-Mayer Studios Inc. v. Grokster, Ltd.'; }, { caseKeys: 'nameyear' }), '\\defcase{metrogoldwynmayer2005}', 'caseKeys "nameyear": first word + year');
-has(one(function (i) { return i.caseName === 'Garcia v Character Technologies Inc.'; }), '\\defcase{garcia}', 'caseKeys default');
 
-// key source: own vs adopt Better BibTeX's native key
-var withNative = [{ itemType: 'book', title: 'A Book', creators: [{ creatorType: 'author', name: 'Thomas Haigh', fieldMode: 1, lastName: 'Thomas Haigh', firstName: '' }], date: '2020', citationKey: 'thomashaigh2020' }];
-has(run({}, {}, withNative), '\\defbook{haigh2020}', 'own: generates lastname+year, ignores the native key');
-has(run({ keySource: 'adopt' }, {}, withNative), '\\defbook{thomashaigh2020}', 'adopt: uses the native key when hicite can use it');
-has(run({ keySource: 'adopt' }, {}, [Object.assign({}, withNative[0], { citationKey: '2020' })]), '\\defbook{haigh2020}', 'adopt: an unusable native key ("2020") is ignored');
-has(run({}, {}, [Object.assign({}, withNative[0], { extra: 'Citation Key: pinned1' })]), '\\defbook{pinned1}', 'an Extra pin always wins');
+// keys: Better BibTeX's (auth.lower + shorttitle(3,3) + year), with first-party keys for cases and Short Title /
+// first-word keys for statutes, bills and hearings -- see keyFor() in the translator
+function keyOf(item, settings) { var m = /\\def[a-z]+\{([^}]*)\}\{/.exec(run(settings, {}, [item])); return m && m[1]; }
+function person1(f, l) { return { creatorType: 'author', firstName: f, lastName: l }; }
+function inst1(n) { return { creatorType: 'author', name: n, fieldMode: 1, lastName: n, firstName: '' }; }
+eq(keyOf({ itemType: 'journalArticle', title: 'Fair Use as Market Failure: A Structural and Economic Analysis of the "Betamax" Case', publicationTitle: 'J', date: '1982', creators: [person1('Wendy J.', 'Gordon')] }), 'gordonFairUseMarket1982', 'author + three title words (skip words dropped, capitalized) + year');
+eq(keyOf({ itemType: 'webpage', title: 'Introducing ChatGPT', date: '2022-11-30', creators: [inst1('OpenAI')] }), 'openaiIntroducingChatGPT2022', 'a one-field name is used whole, lower-cased');
+eq(keyOf({ itemType: 'webpage', title: 'Behaviorism', date: '2000', creators: [inst1('Stanford Encyclopedia of Philosophy')] }), 'stanfordencyclopediaofphilosophyBehaviorism2000', 'whole one-field names, spaces dropped');
+eq(keyOf({ itemType: 'book', title: 'A Theory of the Case', date: '2001', creators: [person1('Bart', 'van Merrienboer')] }), 'vanmerrienboerTheoryCase2001', 'last name with its particle; "a", "of", "the" skipped');
+eq(keyOf({ itemType: 'journalArticle', title: 'Über formal unentscheidbare Sätze', publicationTitle: 'M', date: '1931', creators: [person1('Kurt', 'Gödel')] }), 'godelUberFormalUnentscheidbare1931', 'accents folded');
+eq(keyOf({ itemType: 'book', title: 'The Law of the Horse', date: '1996', creators: [{ creatorType: 'editor', firstName: 'Ann', lastName: 'Editor' }] }), 'editorLawHorse1996', 'no author: the editor');
+eq(keyOf({ itemType: 'book', title: '2001: A Space Odyssey', date: '1968', creators: [] }), 'ref2001SpaceOdyssey1968', 'a key starting with a digit gets "ref" (hicite would read it as a volume)');
+eq(keyOf({ itemType: 'book', title: 'Tiny', creators: [person1('A', 'B')] }), 'bTiny', 'no date: no year');
+eq(keyOf({ itemType: 'case', caseName: 'Metro-Goldwyn-Mayer Studios Inc. v. Grokster, Ltd.', dateDecided: '2005-06-27', creators: [] }), 'metrogoldwynmayerstudios2005', 'case: first party, no company suffix, no punctuation, + year');
+eq(keyOf({ itemType: 'case', caseName: 'Garcia v Character Technologies Inc.', dateDecided: '2025', creators: [] }), 'garcia2025', '"v" without a period splits too');
+eq(keyOf({ itemType: 'case', caseName: 'Cox Communications, Inc. v. Sony Music Entertainment', dateDecided: '2026', creators: [] }), 'coxcommunications2026', '", Inc." dropped');
+eq(keyOf({ itemType: 'case', caseName: 'In re Smith', dateDecided: '2013-05-01', creators: [] }), 'inresmith2013', 'no "v": the whole name');
+eq(keyOf({ itemType: 'case', caseName: 'Complaint: Carrier v. OpenAI Foundation', dateDecided: '2026-06-11', creators: [] }), 'carrier2026', 'a court paper is keyed by its case');
+eq(keyOf({ itemType: 'case', caseName: 'Order Granting Final Approval of Class Action Settlement, Bartz v. Anthropic PBC', dateDecided: '2026', creators: [] }), 'bartz2026', 'a court paper with a long name');
+eq(keyOf({ itemType: 'statute', nameOfAct: 'Ensuring Likeness, Voice, and Image Security Act', shortTitle: 'ELVIS Act', dateEnacted: '2024', creators: [] }), 'elvisact2024', 'statute: the Short Title');
+eq(keyOf({ itemType: 'statute', nameOfAct: 'Communications Decency Act', creators: [] }), 'communications', 'statute without a Short Title: the first word of the title');
+eq(keyOf({ itemType: 'bill', title: 'The NO FAKES Act of 2025', date: '2025-04-09', creators: [{ creatorType: 'sponsor', firstName: 'C', lastName: 'Coons' }] }), 'no2025', 'bill: first significant word of the title (not the sponsor)');
+eq(keyOf({ itemType: 'hearing', title: 'Oversight of A.I.', shortTitle: 'AI Oversight', date: '2023', creators: [] }), 'aioversight2023', 'hearing: the Short Title');
+eq(keyOf({ itemType: 'webpage', url: 'https://x.org/a', creators: [] }), 'ref', 'nothing to go on but a URL');
+
+// a key the item already has: a "Citation Key:" line in Extra (the old way, moved into the field by the add-on) wins over
+// the Citation Key field; the field is used when there is no line; an unusable one is replaced by a generated key
+var withNative = { itemType: 'book', title: 'A Book', creators: [person1('Ann', 'Writer')], date: '2020', citationKey: 'thomashaigh2020' };
+eq(keyOf(withNative), 'thomashaigh2020', 'the Citation Key field is used');
+eq(keyOf(Object.assign({}, withNative, { citationKey: '2020' })), 'writerBook2020', 'an unusable field key ("2020") is replaced by a generated one');
+eq(keyOf(Object.assign({}, withNative, { citationKey: 'has_underscore' })), 'writerBook2020', 'so is one with characters hicite cannot use');
+eq(keyOf(Object.assign({}, withNative, { extra: 'Citation Key: pinned1' })), 'pinned1', 'an Extra line wins over the field');
+eq(keyOf(Object.assign({}, withNative, { extra: 'Citation Key: 2018' })), 'thomashaigh2020', 'an unusable Extra line is ignored');
+var twice = run({}, {}, [mk({ itemType: 'book', title: 'Same', date: '2000', creators: [person1('A', 'Same')], extra: 'Citation Key: Dup1' }), mk({ itemType: 'book', title: 'Other', date: '2001', creators: [], extra: 'Citation Key: dup1' }), mk({ itemType: 'book', title: 'Dup One', date: '2002', creators: [person1('A', 'Dup')] })]);
+has(twice, '\\defbook{Dup1}', 'first of two keys that differ only in case is kept'); has(twice, '\\defbook{dup1a}', 'the second is disambiguated (keys are compared case-insensitively, as Better BibTeX does)');
+has(run({}, {}, [mk({ itemType: 'book', title: 'Same Title', date: '2000', creators: [person1('A', 'Same')] }), mk({ itemType: 'book', title: 'Same Title', date: '2000', creators: [person1('B', 'Same')] })]), '\\defbook{sameSameTitle2000a}', 'generated duplicates get a, b, ...');
 
 // publisher option still works
 has(run({}, { 'Include publisher': true }, items.filter(function (i) { return i.title === 'Nimmer on Copyright & Related Things'; })), 'publisher={LexisNexis}', 'Include publisher');

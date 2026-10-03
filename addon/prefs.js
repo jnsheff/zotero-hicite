@@ -1,7 +1,4 @@
 pref("extensions.hicite-export.autoExports", "[]");
-pref("extensions.zotero.translators.hicite.keySource", "own");
-pref("extensions.zotero.translators.hicite.keyStore", "extra");
-pref("extensions.zotero.translators.hicite.caseKeys", "shorttitle");
 pref("extensions.zotero.translators.hicite.shortTitleInline", true);
 pref("extensions.zotero.translators.hicite.omitRedundantSite", true);
 pref("extensions.zotero.translators.hicite.includeUrls", true);
@@ -11,3 +8,5 @@ pref("extensions.zotero.translators.hicite.titleCase", true);
 pref("extensions.zotero.translators.hicite.longLists", "8");
 pref("extensions.zotero.translators.hicite.phoenixMode", "auto");
 pref("extensions.zotero.translators.hicite.phoenix", "off");
+pref("extensions.zotero.translators.hicite.bbtFormula", "on");
+pref("extensions.zotero.translators.hicite.bbtFormulaBackup", "");

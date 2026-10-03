@@ -5,18 +5,20 @@ A **Zotero 9 and 10** add-on that works like Better BibTeX, but targets the
 not read BibTeX; its native input is its own reference definitions
 (`\defjrnart{key}{author=..., title=...}`), which is what this exports.
 
-* **Stable citation keys.** Keys are pinned in *Extra* as `Citation Key: haigh2024` (or, with the *Key store*
-  setting, in Zotero's own Citation Key field; see below) the first time they are needed, so they never change under you. By default the add-on generates its own
-  (family name + year, disambiguated with `a`, `b`, ...); people stored in Zotero as a single name
-  ("Thomas Haigh") are recognized and keyed on the family name, institutions on their whole name
-  (`anthropicpbc2025`). **Cases** are keyed by their Short Title, or else the first party without
-  "Inc."/"LLC" (`grokster`, `garcia`). Alternatively a Settings choice adopts Better BibTeX's key when
-  hicite can use it. Keys are built from **last names only** (`amodei2016`, not `darioamodei2016`): Zotero's single-field names are
-  read as "First Last", "Last, First", "Name, Jr." and "Name [@handle]", and institutions keep their whole
-  name (`anthropicpbc2025`). A key that is already pinned never changes on its own, so keys pinned by an older
-  version (or adopted from Better BibTeX) keep their old form until you regenerate them.
-  hicite can use a key that starts with a letter and contains only letters, digits and
-  hyphens; anything else (for example `2012`) is ignored.
+* **One set of citation keys: Better BibTeX's.** Keys live in Zotero's own *Citation Key* field and never change by
+  themselves. With [Better BibTeX](https://retorque.re/zotero-better-bibtex/) installed it makes them, and this add-on
+  gives it a formula for legal sources (below); without it this add-on makes the same keys itself, so the keys do not
+  depend on which you have. The keys are Better BibTeX's default, `auth.lower + shorttitle(3,3) + year`
+  (`gordonFairUseMarket1982`: the author's last name, the first three significant words of the title capitalized,
+  the year; a one-field name such as "OpenAI" is used whole), with these rules for legal sources:
+  **cases** use the first party's name, without "Inc."/"LLC", and the year (`metrogoldwynmayerstudios2005`; a
+  court paper such as "Complaint: Carrier v. OpenAI Foundation" is keyed by its case, `carrier2026`);
+  **statutes, bills and hearings** use the Short Title, else the first word of the title, and the year
+  (`elvisact2024`). hicite can use a key that starts with a letter and contains only letters, digits and
+  hyphens, so anything else is left out of a key made here, and a Better BibTeX key with other characters is
+  not used until it is changed. Duplicates get `a`, `b`, ... (keys are compared case-insensitively).
+  A `Citation Key:` line in *Extra* is how earlier versions of this add-on pinned keys: it still wins, because
+  documents cite it, and is moved into the Citation Key field the next time the item is exported.
 * **Export translator.** File > Export Library, or right-click a collection >
   Export, then choose **hicite**. Writes a `.tex` file of definitions.
 * **Keep updated (in the Export dialog).** Tick **Keep updated** when exporting
@@ -30,10 +32,10 @@ not read BibTeX; its native input is its own reference definitions
   after any change to the library or collection (including sub-collections),
   after sync, and at startup. The file is only written when its content
   changes. Right-click again for *Export Now* / *Stop Auto-Export*; *Tools >
-  hicite: Run All Auto-Exports Now* re-runs every job. Missing citation keys in
-  the exported scope are pinned before each run so keys never shift as the
-  library grows.
-* **Settings.** Zotero > Settings > **hicite**: key source and case-key style, how many authors to list
+  hicite: Run All Auto-Exports Now* re-runs every job. Before each run, old
+  `Citation Key:` lines in the exported scope are moved into the Citation Key field and, without Better
+  BibTeX, missing keys are made, so keys never shift as the library grows.
+* **Settings.** Zotero > Settings > **hicite**: whether to give Better BibTeX the legal-source formula, how many authors to list
   before "et al.", whether Short Titles become short-form names, whether a website's title is dropped when
   it repeats the author, URLs, and your auto-exports (each with its own *Include publisher* checkbox and a *Stop* button).
 * **Item menu.** *hicite: Pin / Regenerate / Copy Citation Keys*; on a library or collection,
@@ -160,30 +162,36 @@ It is meant to be pasted into Tools > Developer > Run JavaScript. It defaults to
 shared group libraries unless told otherwise, refuses to apply without a backup confirmation,
 and can be reverted step by step. Read the comment at the top of the file first.
 
-## Key store: Extra or Zotero's Citation Key field
-
-Settings > *Key store* chooses where new keys are written: a `Citation Key:` line in **Extra** (the default) or
-Zotero's own **Citation Key field**, the one Better BibTeX also uses. Reading is the same either way: a key in
-Extra comes first, then (with the field store, or *Use Better BibTeX's key*) the field, so switching the setting
-never changes a key you already cite. The export translator reads keys the same way.
-
-To move existing keys, right-click a collection or library and choose *hicite: Move Keys to Citation Key
-Field…*. The confirmation lists what will happen before anything is changed: how many keys move, which keys
-replace a *different* key already in the field (the hicite key wins, since it is the one your documents cite),
-and how many items are left alone. Items are saved quietly (no change to Date Modified, no notification to other
-add-ons), the `Citation Key:` line is removed from Extra, and the setting is switched to the field. Item types
-without the field keep their key in Extra.
-
-If Better BibTeX also writes that field, turn off its automatic key generation, or it can overwrite hicite's keys
-when an item changes. Items that have only a Better BibTeX key keep it until you regenerate them.
-
 ## Better BibTeX
 
-Better BibTeX 9 keeps citation keys in Zotero's native Citation Key field, and (depending on its
-"reset key on change" setting) regenerates a key whenever an item is saved. Saving an item from an
-add-on or script therefore silently replaces its key. This add-on's key pinning and the Juris-M
-migration script both save with `skipNotifier`, so Better BibTeX never sees those edits and your keys
-stay put. If you write your own scripts that edit items, do the same.
+When Better BibTeX is installed and enabled, the add-on sets its citation key formula (both
+`citekeyFormat` and `citekeyFormatEditing`) to
+
+```
+type('case') + Title.replace(...first party...).nopunctordash.lower + year
+| type('statute', 'bill', 'hearing') + ShortTitle.match(/./).nopunctordash.lower + year
+| type('statute', 'bill', 'hearing') + veryshorttitle(1).lower + year
+| auth.lower + shorttitle(3, 3) + year
+```
+
+(the full text is `BBT_FORMULA` in `addon/hicite-export.js`), after saving your previous formula in the hidden
+preference `translators.hicite.bbtFormulaBackup`. It does this once at startup and when Better BibTeX is enabled;
+turn it off with the *Give Better BibTeX a citation key formula* setting. A formula only applies to items that have
+no key, so existing keys are never touched; with the formula installed Better BibTeX fills in the key of a new item
+as it always does, and the add-on exports that key. The add-on never makes a second key: while an item has none
+(Better BibTeX has not filled it in yet) the export uses the key the formula would give it, and Better BibTeX's
+arrives a moment later (the two are meant to be identical).
+
+*hicite: Regenerate Citation Key* (and the case / all variants) clears the key and lets Better BibTeX make a
+new one; without Better BibTeX the add-on makes it. To move old `Citation Key:` lines out of Extra for a whole
+collection at once, right-click it and choose *hicite: Move Keys to Citation Key Field…*; the confirmation lists
+what will happen first (how many keys move, which replace a *different* key already in the field; the hicite key
+wins, since it is the one your documents cite).
+
+Better BibTeX 9 regenerates a key whenever an item *without one* is saved, and it ignores `Citation Key:` lines in
+Extra, so a script that saves an item that has only an Extra key gets a new key from Better BibTeX. Scripts that
+edit items should save with `skipNotifier` (as this add-on and the Juris-M migration script do) and put keys in the
+Citation Key field.
 
 ## Layout
 
@@ -228,9 +236,11 @@ The key test needs macOS's `jsc` (JavaScriptCore shell); the others use `osascri
   syntax-checked, and their Zotero API usage was checked against Zotero's
   current source (MenuManager, Translate.Export, Search, FilePicker,
   translators directory), but not executed. Expect to debug a first run.
-* Keys follow fixed patterns (family name + year; cases by Short Title or first party), with the choices
-  in Settings; there is no free-form key formula. Existing keys are pinned, so a changed setting applies to
-  items without a key: use *Regenerate* to re-key existing ones.
+* The key rules are fixed (Better BibTeX's default plus the legal-source rules above), not a free-form formula;
+  with Better BibTeX installed you can edit its formula yourself and turn the add-on's setting off. The key
+  generator written here follows Better BibTeX's rules for title words (skip words, single characters, accents) but
+  splits words on spaces rather than with its natural-language tokenizer, so a title with unusual punctuation can
+  differ by a letter.
 * The Settings pane could only be checked against Zotero's source and a fake DOM, not run in Zotero.
 * Legal types beyond the table (hearings, ...) fall back to
   `website`; extend `emit()` in `addon/translator/hicite.js`.

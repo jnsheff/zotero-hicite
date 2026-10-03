@@ -14,9 +14,6 @@
 		"Keep updated": false
 	},
 	"hiddenPrefs": {
-		"hicite.keySource": "own",
-		"hicite.keyStore": "extra",
-		"hicite.caseKeys": "shorttitle",
 		"hicite.shortTitleInline": true,
 		"hicite.omitRedundantSite": true,
 		"hicite.includeUrls": true,
@@ -24,7 +21,8 @@
 		"hicite.titleCase": true,
 		"hicite.longLists": "8",
 		"hicite.phoenixMode": "auto",
-		"hicite.phoenix": "off"
+		"hicite.phoenix": "off",
+		"hicite.bbtFormula": "on"
 	},
 	"lastUpdated": "2026-09-29 18:00:00"
 }
@@ -51,13 +49,12 @@
  */
 
 var MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-var STOPWORDS = /^(a|an|the|of|on|in|re|and|for|to)$/i;
 var SKIP_TYPES = { note: 1, attachment: 1, annotation: 1 };
 
 // ---------------------------------------------------------------- settings
 
 var DEFAULTS = {
-	keySource: 'own', keyStore: 'extra', caseKeys: 'shorttitle', shortTitleInline: true, omitRedundantSite: true, includeUrls: true, maxAuthors: '0', titleCase: true, longLists: '8', phoenixMode: 'auto', phoenix: 'off'
+	shortTitleInline: true, omitRedundantSite: true, includeUrls: true, maxAuthors: '0', titleCase: true, longLists: '8', phoenixMode: 'auto', phoenix: 'off'
 };
 
 function setting(name) {
@@ -162,45 +159,85 @@ function dateOf(item) {
 
 // ------------------------------------------------------------------- keys
 
-var CORP_SUFFIX = /[,\s]+(inc|incorporated|llc|l\.l\.c|ltd|limited|corp|corporation|co|company|plc|pbc|lp|llp|gmbh|ag|sa)\.?$/i;
+// Keys are made the way Better BibTeX makes them, so that with or without Better BibTeX the keys come out
+// the same. Its default formula is   auth.lower + shorttitle(3,3) + year   (e.g. gordonFairUseMarket1982);
+// for legal sources the formula the add-on installs in Better BibTeX (HICITE_FORMULA in hicite-export.js) is
+//   type(case) + <first party>.lower + year
+//   | type(statute, bill, hearing) + ShortTitle.lower + year        (when there is a Short Title)
+//   | type(statute, bill, hearing) + veryshorttitle(1).lower + year (else the first word of the title)
+//   | auth.lower + shorttitle(3,3) + year
+// Keep this block (down to baseKey) in step with addon/hicite-export.js; test/parity-jxa.js compares them.
 
-function firstParty(caseName) {
-	var m = /^(.+?)\s+v\.?\s+.+$/i.exec(String(caseName).trim());
-	return m ? m[1] : String(caseName).trim();
+// Better BibTeX's default skipWords: left out of title words.
+var SKIP_WORDS = {};
+'a,ab,aboard,about,above,across,after,against,al,along,amid,among,an,and,anti,around,as,at,before,behind,below,beneath,beside,besides,between,beyond,but,by,d,da,das,de,del,dell,dello,dei,degli,della,dell,delle,dem,den,der,des,despite,die,do,down,du,during,ein,eine,einem,einen,einer,eines,el,en,et,except,for,from,gli,i,il,in,inside,into,is,l,la,las,le,les,like,lo,los,near,nor,of,off,on,onto,or,over,past,per,plus,round,save,since,so,some,sur,than,the,through,to,toward,towards,un,una,unas,under,underneath,une,unlike,uno,unos,until,up,upon,versus,via,von,while,with,within,without,yet,zu,zum'
+	.split(',').forEach(function (w) { SKIP_WORDS[w] = 1; });
+
+var CORP_SUFFIX = /,?\s+(?:inc|incorporated|llc|ltd|limited|corp|corporation|co|company|plc|pbc|lp|llp|gmbh|ag|sa)[.]?$/i;
+// "Complaint: Garcia v. Character Technologies", "Order Granting ..., Bartz v. Anthropic PBC"
+var COURT_PAPER_PREFIX = /^(?:(?:first|second|third|amended)\s+)*(?:complaint|answer|counterclaim|motion|brief|order|opinion|declaration|affidavit|memorandum|petition|judgment|transcript|stipulation)\b[^:,]*[:,]\s+/i;
+var LEGAL_TYPES = { statute: 1, bill: 1, hearing: 1 };
+
+// Better BibTeX transliterates keys to ASCII ("fold"): accents go, a few letters are spelled out.
+function foldAscii(s) {
+	return String(s).replace(/ß/g, 'ss').replace(/æ/g, 'ae').replace(/Æ/g, 'AE').replace(/œ/g, 'oe').replace(/Œ/g, 'OE')
+		.replace(/[øđ]/g, function (c) { return c === 'ø' ? 'o' : 'd'; }).replace(/[ØĐ]/g, function (c) { return c === 'Ø' ? 'O' : 'D'; })
+		.replace(/ł/g, 'l').replace(/Ł/g, 'L').replace(/ı/g, 'i')
+		.normalize('NFD').replace(/[̀-ͯ]/g, '');
 }
 
-function firstWord(text) {
-	var words = String(text).split(/\s+/);
-	for (var i = 0; i < words.length; i++) {
-		if (!STOPWORDS.test(words[i]) && slug(words[i])) return words[i];
+// Better BibTeX's nopunct: dashes and punctuation removed.
+function noPunct(s) {
+	return String(s).replace(/[\p{Pd}─－―]/gu, '').replace(/[\p{Pe}\p{Pf}\p{Pi}\p{Po}\p{Ps}]/gu, '');
+}
+
+// The significant words of a title (Better BibTeX's titleWords with nopunct): markup and quotes dropped, "/" and
+// ":" read as spaces, words made of one character (other than a number) and skip words left out, accents folded.
+function titleWords(title) {
+	title = String(title || '').replace(/<\/?(?:i|b|sc|nc|code|span[^>]*)>|["]/ig, '').replace(/[/:]/g, ' ');
+	return title.split(/\s+/).filter(function (w) { return w && !SKIP_WORDS[w.toLowerCase()]; })
+		.map(noPunct).filter(function (w) { return w && !(w.length === 1 && !/^\d+$/.test(w)) && !SKIP_WORDS[w.toLowerCase()]; })
+		.map(foldAscii);
+}
+
+function shortTitle(title, n, m) { // shorttitle(n, m): the first n words, the first m of them capitalized
+	return titleWords(title).slice(0, n).map(function (w, i) { return i < m ? w.charAt(0).toUpperCase() + w.slice(1) : w; }).join('');
+}
+
+function firstPartyOf(title) {
+	return String(title || '').trim().replace(COURT_PAPER_PREFIX, '').replace(/\s+v(?:s)?[.]?\s.*$/i, '').replace(CORP_SUFFIX, '');
+}
+
+// What Better BibTeX would end with: transliterated, unsafe characters (and, for hicite, anything but letters,
+// digits and hyphens) removed; a leading digit would read as a volume number, so such a key gets "ref".
+function finishKey(key) {
+	key = foldAscii(key).replace(/[^A-Za-z0-9-]/g, '');
+	return /^[A-Za-z]/.test(key) ? key : 'ref' + key;
+}
+
+// info: { type, title, shortTitle, year, creators: [{ kind, name }] } (name = last name, or the whole name of a
+// one-field creator; kind = creator type). auth is the first author, else editor, translator, collaborator.
+function keyFor(info) {
+	var key, year = info.year || '';
+	if (info.type === 'case') key = noPunct(firstPartyOf(info.title)).toLowerCase() + year;
+	else if (LEGAL_TYPES[info.type] && info.shortTitle) key = noPunct(info.shortTitle).toLowerCase() + year;
+	else if (LEGAL_TYPES[info.type]) key = shortTitle(info.title, 1, 0).toLowerCase() + year;
+	else {
+		var kinds = ['author', 'editor', 'translator', 'collaborator'], auth = '';
+		for (var i = 0; i < kinds.length && !auth; i++) {
+			var found = (info.creators || []).filter(function (c) { return c.kind === kinds[i]; })[0];
+			if (found) auth = found.name || '';
+		}
+		key = auth.toLowerCase() + shortTitle(info.title, 3, 3) + year;
 	}
-	return '';
-}
-
-// A key must start with a letter (a leading digit reads as a volume number).
-function finish(key) {
-	return /^[a-z]/.test(key) ? key : 'ref' + key;
+	return finishKey(key || 'ref');
 }
 
 function baseKey(item) {
-	var name = '';
-	if (item.itemType === 'case') {
-		if (setting('caseKeys') === 'shorttitle') {
-			// The Short Title if there is one, else the first party (without "Inc.", "LLC", ...)
-			var st = pick(item, 'shortTitle');
-			var party = firstParty(pick(item, 'caseName', 'title'));
-			var key = slug(st) || slug(party.replace(CORP_SUFFIX, '')) || slug(party);
-			return finish(key || 'case');
-		}
-		name = firstWord(pick(item, 'caseName', 'title'));
-	}
-	else {
-		var cs = creatorsOf(item, 'author');
-		if (!cs.length && item.creators && item.creators.length) cs = [item.creators[0]];
-		if (cs.length) name = creatorFamily(cs[0]);
-	}
-	if (!slug(name) && item.title) name = firstWord(item.title);
-	return finish(slug(name) || 'ref') + yearOf(item);
+	return keyFor({
+		type: item.itemType, title: pick(item, 'title', 'caseName', 'nameOfAct'), shortTitle: pick(item, 'shortTitle'), year: yearOf(item),
+		creators: (item.creators || []).map(function (c) { return { kind: c.creatorType, name: c.lastName || c.name || '' }; }),
+	});
 }
 
 function suffix(n) { // 1 -> a, 26 -> z, 27 -> aa
@@ -219,14 +256,12 @@ function usableKey(k) {
 	return /^[A-Za-z][A-Za-z0-9-]*$/.test(k || '');
 }
 
-// The first usable key among the Extra "Citation Key:" line (pinned by this add-on) and, only
-// when the key source setting is "adopt", the native Citation Key field (Better BibTeX).
+// The key the item already has: a "Citation Key:" line in Extra (this add-on's old way of pinning keys, which
+// wins until it has been moved) or else the Citation Key field (where keys live now, whether Better BibTeX or
+// this add-on made them).
 function pinnedKey(item) {
 	var m = /^\s*Citation Key\s*:\s*(\S+)\s*$/im.exec(item.extra || '');
-	// A key pinned in Extra comes first; Zotero's Citation Key field is used when it is the key store
-	// or the key source is "adopt".
-	var candidates = [m ? m[1] : ''];
-	if (setting('keySource') === 'adopt' || setting('keyStore') === 'field') candidates.push(item.citationKey || '');
+	var candidates = [m ? m[1] : '', item.citationKey || ''];
 	for (var i = 0; i < candidates.length; i++) {
 		if (usableKey(candidates[i])) return candidates[i];
 	}
@@ -1118,15 +1153,15 @@ function doExport() {
 	var keys = items.map(function (it) {
 		var k = pinnedKey(it), n = 0, base = k;
 		if (!k) return '';
-		while (used[k]) k = base + suffix(++n);
-		used[k] = 1;
+		while (used[k.toLowerCase()]) k = base + suffix(++n); // Better BibTeX compares keys case-insensitively
+		used[k.toLowerCase()] = 1;
 		return k;
 	});
 	items.forEach(function (it, i) {
 		if (keys[i]) return;
 		var base = baseKey(it), key = base, n = 0;
-		while (used[key]) key = base + suffix(++n);
-		used[key] = 1;
+		while (used[key.toLowerCase()]) key = base + suffix(++n);
+		used[key.toLowerCase()] = 1;
 		keys[i] = key;
 	});
 

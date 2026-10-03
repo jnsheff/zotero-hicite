@@ -1,0 +1,163 @@
+[
+ {
+  "itemType": "journalArticle",
+  "title": "Fair Use as Market Failure: A Structural and Economic Analysis of the \"Betamax\" Case",
+  "publicationTitle": "J",
+  "date": "1982",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Wendy J.",
+    "lastName": "Gordon"
+   }
+  ]
+ },
+ {
+  "itemType": "webpage",
+  "title": "Introducing ChatGPT",
+  "date": "2022-11-30",
+  "creators": [
+   {
+    "creatorType": "author",
+    "name": "OpenAI",
+    "fieldMode": 1,
+    "lastName": "OpenAI",
+    "firstName": ""
+   }
+  ]
+ },
+ {
+  "itemType": "book",
+  "title": "A Theory of the Case",
+  "date": "2001",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Bart",
+    "lastName": "van Merrienboer"
+   }
+  ]
+ },
+ {
+  "itemType": "journalArticle",
+  "title": "Über formal unentscheidbare Sätze",
+  "publicationTitle": "M",
+  "date": "1931",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "Kurt",
+    "lastName": "Gödel"
+   }
+  ]
+ },
+ {
+  "itemType": "book",
+  "title": "The Law of the Horse",
+  "date": "1996",
+  "creators": [
+   {
+    "creatorType": "editor",
+    "firstName": "Ann",
+    "lastName": "Editor"
+   }
+  ]
+ },
+ {
+  "itemType": "book",
+  "title": "2001: A Space Odyssey",
+  "date": "1968",
+  "creators": []
+ },
+ {
+  "itemType": "case",
+  "caseName": "Metro-Goldwyn-Mayer Studios Inc. v. Grokster, Ltd.",
+  "dateDecided": "2005-06-27",
+  "creators": []
+ },
+ {
+  "itemType": "case",
+  "caseName": "Cox Communications, Inc. v. Sony Music Entertainment",
+  "dateDecided": "2026",
+  "creators": []
+ },
+ {
+  "itemType": "case",
+  "caseName": "In re Smith",
+  "dateDecided": "2013-05-01",
+  "creators": []
+ },
+ {
+  "itemType": "case",
+  "caseName": "Complaint: Carrier v. OpenAI Foundation",
+  "dateDecided": "2026-06-11",
+  "creators": []
+ },
+ {
+  "itemType": "case",
+  "caseName": "Order Granting Final Approval of Class Action Settlement, Bartz v. Anthropic PBC",
+  "dateDecided": "2026",
+  "creators": []
+ },
+ {
+  "itemType": "statute",
+  "nameOfAct": "Ensuring Likeness, Voice, and Image Security Act",
+  "shortTitle": "ELVIS Act",
+  "dateEnacted": "2024",
+  "creators": []
+ },
+ {
+  "itemType": "statute",
+  "nameOfAct": "Communications Decency Act",
+  "creators": []
+ },
+ {
+  "itemType": "bill",
+  "title": "The NO FAKES Act of 2025",
+  "date": "2025-04-09",
+  "creators": [
+   {
+    "creatorType": "sponsor",
+    "firstName": "C",
+    "lastName": "Coons"
+   }
+  ]
+ },
+ {
+  "itemType": "hearing",
+  "title": "Oversight of A.I.",
+  "shortTitle": "AI Oversight",
+  "date": "2023",
+  "creators": []
+ },
+ {
+  "itemType": "webpage",
+  "url": "https://x.org/a",
+  "creators": []
+ },
+ {
+  "itemType": "report",
+  "title": "\"Quoted\" <i>Title</i> / with: marks",
+  "date": "2010",
+  "creators": [
+   {
+    "creatorType": "author",
+    "name": "Center for AI Safety",
+    "fieldMode": 1,
+    "lastName": "Center for AI Safety",
+    "firstName": ""
+   }
+  ]
+ },
+ {
+  "itemType": "book",
+  "title": "Tiny",
+  "creators": [
+   {
+    "creatorType": "author",
+    "firstName": "A",
+    "lastName": "B"
+   }
+  ]
+ }
+]

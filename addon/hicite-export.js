@@ -1,14 +1,84 @@
 /* hicite Export for Zotero: main module.
  *
  *  - installs the "hicite" export translator (translator/hicite.js)
- *  - pins a stable "Citation Key: ..." line in Extra for new items (the same
- *    place Better BibTeX uses), with a/b/c disambiguation
+ *  - citation keys: the ones Better BibTeX makes (it is told a formula for legal sources) or, without it,
+ *    the same keys made here, kept in Zotero's Citation Key field with a/b/c disambiguation
  *  - item / collection / Tools menus via Zotero.MenuManager
  *  - auto-export: keeps .tex files up to date as the library changes
  *  - a Settings pane (preferences.xhtml) for the export and key settings
  *
  * Written against the Zotero 8/9 plugin APIs.
  */
+
+// The key generator: a copy of the one in translator/hicite.js (which runs in the translator sandbox and
+// cannot share code); test/parity-jxa.js checks that the two agree.
+var KeyGen = (function () {
+// Better BibTeX's default skipWords: left out of title words.
+var SKIP_WORDS = {};
+'a,ab,aboard,about,above,across,after,against,al,along,amid,among,an,and,anti,around,as,at,before,behind,below,beneath,beside,besides,between,beyond,but,by,d,da,das,de,del,dell,dello,dei,degli,della,dell,delle,dem,den,der,des,despite,die,do,down,du,during,ein,eine,einem,einen,einer,eines,el,en,et,except,for,from,gli,i,il,in,inside,into,is,l,la,las,le,les,like,lo,los,near,nor,of,off,on,onto,or,over,past,per,plus,round,save,since,so,some,sur,than,the,through,to,toward,towards,un,una,unas,under,underneath,une,unlike,uno,unos,until,up,upon,versus,via,von,while,with,within,without,yet,zu,zum'
+	.split(',').forEach(function (w) { SKIP_WORDS[w] = 1; });
+
+var CORP_SUFFIX = /,?\s+(?:inc|incorporated|llc|ltd|limited|corp|corporation|co|company|plc|pbc|lp|llp|gmbh|ag|sa)[.]?$/i;
+// "Complaint: Garcia v. Character Technologies", "Order Granting ..., Bartz v. Anthropic PBC"
+var COURT_PAPER_PREFIX = /^(?:(?:first|second|third|amended)\s+)*(?:complaint|answer|counterclaim|motion|brief|order|opinion|declaration|affidavit|memorandum|petition|judgment|transcript|stipulation)\b[^:,]*[:,]\s+/i;
+var LEGAL_TYPES = { statute: 1, bill: 1, hearing: 1 };
+
+// Better BibTeX transliterates keys to ASCII ("fold"): accents go, a few letters are spelled out.
+function foldAscii(s) {
+	return String(s).replace(/ß/g, 'ss').replace(/æ/g, 'ae').replace(/Æ/g, 'AE').replace(/œ/g, 'oe').replace(/Œ/g, 'OE')
+		.replace(/[øđ]/g, function (c) { return c === 'ø' ? 'o' : 'd'; }).replace(/[ØĐ]/g, function (c) { return c === 'Ø' ? 'O' : 'D'; })
+		.replace(/ł/g, 'l').replace(/Ł/g, 'L').replace(/ı/g, 'i')
+		.normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+// Better BibTeX's nopunct: dashes and punctuation removed.
+function noPunct(s) {
+	return String(s).replace(/[\p{Pd}─－―]/gu, '').replace(/[\p{Pe}\p{Pf}\p{Pi}\p{Po}\p{Ps}]/gu, '');
+}
+
+// The significant words of a title (Better BibTeX's titleWords with nopunct): markup and quotes dropped, "/" and
+// ":" read as spaces, words made of one character (other than a number) and skip words left out, accents folded.
+function titleWords(title) {
+	title = String(title || '').replace(/<\/?(?:i|b|sc|nc|code|span[^>]*)>|["]/ig, '').replace(/[/:]/g, ' ');
+	return title.split(/\s+/).filter(function (w) { return w && !SKIP_WORDS[w.toLowerCase()]; })
+		.map(noPunct).filter(function (w) { return w && !(w.length === 1 && !/^\d+$/.test(w)) && !SKIP_WORDS[w.toLowerCase()]; })
+		.map(foldAscii);
+}
+
+function shortTitle(title, n, m) { // shorttitle(n, m): the first n words, the first m of them capitalized
+	return titleWords(title).slice(0, n).map(function (w, i) { return i < m ? w.charAt(0).toUpperCase() + w.slice(1) : w; }).join('');
+}
+
+function firstPartyOf(title) {
+	return String(title || '').trim().replace(COURT_PAPER_PREFIX, '').replace(/\s+v(?:s)?[.]?\s.*$/i, '').replace(CORP_SUFFIX, '');
+}
+
+// What Better BibTeX would end with: transliterated, unsafe characters (and, for hicite, anything but letters,
+// digits and hyphens) removed; a leading digit would read as a volume number, so such a key gets "ref".
+function finishKey(key) {
+	key = foldAscii(key).replace(/[^A-Za-z0-9-]/g, '');
+	return /^[A-Za-z]/.test(key) ? key : 'ref' + key;
+}
+
+// info: { type, title, shortTitle, year, creators: [{ kind, name }] } (name = last name, or the whole name of a
+// one-field creator; kind = creator type). auth is the first author, else editor, translator, collaborator.
+function keyFor(info) {
+	var key, year = info.year || '';
+	if (info.type === 'case') key = noPunct(firstPartyOf(info.title)).toLowerCase() + year;
+	else if (LEGAL_TYPES[info.type] && info.shortTitle) key = noPunct(info.shortTitle).toLowerCase() + year;
+	else if (LEGAL_TYPES[info.type]) key = shortTitle(info.title, 1, 0).toLowerCase() + year;
+	else {
+		var kinds = ['author', 'editor', 'translator', 'collaborator'], auth = '';
+		for (var i = 0; i < kinds.length && !auth; i++) {
+			var found = (info.creators || []).filter(function (c) { return c.kind === kinds[i]; })[0];
+			if (found) auth = found.name || '';
+		}
+		key = auth.toLowerCase() + shortTitle(info.title, 3, 3) + year;
+	}
+	return finishKey(key || 'ref');
+}
+	return { keyFor, titleWords, shortTitle };
+})();
 
 HiCite = {
 	id: null,
@@ -31,7 +101,7 @@ HiCite = {
 	// Settings shared with the export translator (which reads them with Zotero.getHiddenPref,
 	// i.e. the prefs extensions.zotero.translators.hicite.*). Defaults also live in prefs.js and
 	// in the translator's header; keep the three in step.
-	SETTINGS: { keySource: 'own', keyStore: 'extra', caseKeys: 'shorttitle', shortTitleInline: true, omitRedundantSite: true, includeUrls: true, maxAuthors: '0', titleCase: true, longLists: '8', phoenixMode: 'auto', phoenix: 'off' },
+	SETTINGS: { bbtFormula: 'on', shortTitleInline: true, omitRedundantSite: true, includeUrls: true, maxAuthors: '0', titleCase: true, longLists: '8', phoenixMode: 'auto', phoenix: 'off' },
 	settingObservers: [],
 
 	// citation-phoenix (https://github.com/rischconsulting/citation-phoenix) keeps Juris-M's legal data in Extra and
@@ -83,10 +153,14 @@ HiCite = {
 		return this.syncPhoenixPref();
 	},
 
-	// Follow citation-phoenix being installed, enabled, disabled or removed while Zotero runs.
+	// Follow citation-phoenix and Better BibTeX being installed, enabled, disabled or removed while Zotero runs.
 	watchPhoenix() {
 		if (!this.AddonManager || this.addonListener) return;
-		let changed = addon => { if (!this.destroyed && addon?.id === this.PHOENIX_ID) this.refreshPhoenix().catch(e => Zotero.logError(e)); };
+		let changed = addon => {
+			if (this.destroyed) return;
+			if (addon?.id === this.PHOENIX_ID) this.refreshPhoenix().catch(e => Zotero.logError(e));
+			else if (addon?.id === this.BBT_ID) this.refreshBBT().catch(e => Zotero.logError(e));
+		};
 		this.addonListener = {};
 		for (let ev of ['onEnabled', 'onDisabled', 'onInstalled', 'onUninstalling', 'onUninstalled', 'onOperationCancelled']) {
 			this.addonListener[ev] = changed;
@@ -95,100 +169,34 @@ HiCite = {
 	},
 
 	// ------------------------------------------------------------- keys
-	// Keep baseKey() in sync with translator/hicite.js.
-
-	STOPWORDS: /^(a|an|the|of|on|in|re|and|for|to)$/i,
+	// One set of keys, Better BibTeX's, in Zotero's Citation Key field. With Better BibTeX installed it makes them
+	// (this add-on gives it a formula that suits legal sources and otherwise stays out of the way); without it this
+	// add-on makes the same keys itself. A "Citation Key:" line in Extra is how earlier versions of this add-on
+	// pinned keys: it still wins, because documents cite it, and is moved into the field.
 
 	// A key hicite can use as a reference nickname: starts with a letter (a
 	// leading digit reads as a volume number), no spaces or TeX specials.
 	KEY_OK: /^[A-Za-z][A-Za-z0-9-]*$/,
 
-	slug(s) {
-		return String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
-	},
+	BBT_ID: 'better-bibtex@iris-advies.com',
+	// Better BibTeX's formula (its own syntax: "|" tries the next pattern when one does not apply). Cases: the
+	// first party's name (a court paper's "Complaint:" and a company's "Inc." dropped) and the year; statutes, bills
+	// and hearings: the Short Title, else the first word of the title, and the year; everything else Better BibTeX's
+	// default. Keep in step with keyFor() in translator/hicite.js.
+	BBT_FORMULA: 'type(\'case\') + Title.replace(/^(?:(?:first|second|third|amended)\\s+)*(?:complaint|answer|counterclaim|motion|brief|order|opinion|declaration|affidavit|memorandum|petition|judgment|transcript|stipulation)\\b[^:,]*[:,]\\s+/i, \'\').replace(/\\s+v(?:s)?[.]?\\s.*$/i, \'\').replace(/,?\\s+(?:inc|incorporated|llc|ltd|limited|corp|corporation|co|company|plc|pbc|lp|llp|gmbh|ag|sa)[.]?$/i, \'\').nopunctordash.lower + year'
+		+ ' | type(\'statute\', \'bill\', \'hearing\') + ShortTitle.match(/./).nopunctordash.lower + year'
+		+ ' | type(\'statute\', \'bill\', \'hearing\') + veryshorttitle(1).lower + year'
+		+ ' | auth.lower + shorttitle(3, 3) + year',
+	bbt: { installed: false, active: false, version: '' },
 
-	// Words that mark an institution rather than a person, and name particles. Keep in sync with
-	// translator/hicite.js (test/parity-jxa.js compares the two).
-	ORG_WORDS: /\b(inc|incorporated|llc|ltd|limited|corp|corporation|company|co|foundation|institute|university|college|commission|committee|council|office|department|dept|agency|center|centre|association|society|group|labs?|team|board|bureau|government|congress|senate|administration|organization|organisation|conference|legislatures?|initiative|project|network|press|news|review|journal|policy|division|ministry|union|alliance|consortium|forum|trust|fund|bank|pbc|ai|hai|gov|technologies|systems|research|library|museum|school|service|services|international|global)\b/i,
-	PARTICLES: /^(van|von|de|der|den|di|da|del|della|la|le|du|bin|ibn|al|el|ter|ten)$/i,
-	CORP_SUFFIX: /[,\s]+(inc|incorporated|llc|l\.l\.c|ltd|limited|corp|corporation|co|company|plc|pbc|lp|llp|gmbh|ag|sa)\.?$/i,
-
-	// "First Last [Suffix]" from the forms people are typed in: drops a "[@handle]" and a trailing
-	// ";", reads "Hill, Jr." as a suffix and "Last, First" as inverted.
-	tidyName(name) {
-		name = String(name || '').replace(/\s*\[[^\]]*\]\s*/g, ' ').replace(/[;\s]+$/, '').trim();
-		let m = /^(.+?),\s*(jr\.?|sr\.?|ii|iii|iv)$/i.exec(name);
-		if (m) return m[1] + ' ' + m[2];
-		m = /^([^,;]+),\s*([^,;]+)$/.exec(name);
-		if (m && !this.ORG_WORDS.test(name) && /^[A-Z\u00C0-\u00DD]/.test(m[1]) && /^[A-Z\u00C0-\u00DD]/.test(m[2])) return m[2] + ' ' + m[1];
-		return name;
-	},
-
-	// A single-field name (Zotero's fieldMode 1) is a person if it is 2-5 capitalized words with no
-	// institution words, digits, commas or all-caps tokens.
-	looksLikePerson(name) {
-		name = this.tidyName(name);
-		let t = name.split(/\s+/);
-		if (t.length < 2 || t.length > 5) return false;
-		if (/[,;&\d]/.test(name) || this.ORG_WORDS.test(name) || /^the\s/i.test(name)) return false;
-		for (let w of t) {
-			if (w.length > 1 && w === w.toUpperCase() && /[A-Z]/.test(w) && !/^[A-Z]\.?$/.test(w)) return false;
-			if (!(/^[A-Z\u00C0-\u00DD]/.test(w) || this.PARTICLES.test(w) || /^st\.?$/i.test(w))) return false;
-		}
-		return true;
-	},
-
-	splitPerson(name) {
-		let t = this.tidyName(name).split(/\s+/), suffix = '';
-		if (t.length > 2 && /^(jr|sr|ii|iii|iv)\.?$/i.test(t[t.length - 1])) suffix = t.pop();
-		let family = [t.pop()];
-		while (t.length > 1 && this.PARTICLES.test(t[t.length - 1])) family.unshift(t.pop());
-		return { given: t.join(' '), family: family.join(' '), suffix };
-	},
-
-	// The name a key is built from: the family name of a person, the whole name of an institution.
-	creatorFamily(c) {
-		let single = c.fieldMode === 1 || !c.firstName;
-		if (!single) return c.lastName || '';
-		let nm = c.lastName || '';
-		return this.looksLikePerson(nm) ? this.splitPerson(nm).family : nm;
-	},
-
-	firstWord(text) {
-		for (let w of String(text).split(/\s+/)) {
-			if (!this.STOPWORDS.test(w) && this.slug(w)) return w;
-		}
-		return '';
-	},
-
-	// Cases: the Short Title if there is one, else the first party (without "Inc.", "LLC", ...);
-	// or, with the "name and year" setting, the first word of the name plus the year.
+	// The key this add-on would make for an item with none (what Better BibTeX's formula gives, or its default).
 	baseKey(item) {
-		let name = '';
-		if (item.itemType === 'case') {
-			let caseName = item.getField('caseName') || item.getField('title') || '';
-			if (this.pref('caseKeys') === 'shorttitle') {
-				let m = /^(.+?)\s+v\.?\s+.+$/i.exec(caseName.trim());
-				let party = m ? m[1] : caseName.trim();
-				let key = this.slug(item.getField('shortTitle')) || this.slug(party.replace(this.CORP_SUFFIX, '')) || this.slug(party);
-				key = key || 'case';
-				return /^[a-z]/.test(key) ? key : 'ref' + key;
-			}
-			name = this.firstWord(caseName);
-		}
-		else {
-			let creators = item.getCreators();
-			let primary = Zotero.CreatorTypes.getPrimaryIDForType(item.itemTypeID);
-			let c = creators.find(x => x.creatorTypeID === primary) || creators[0];
-			if (c) name = this.creatorFamily(c);
-		}
-		if (!this.slug(name)) name = this.firstWord(item.getField('title') || '');
-		let key = this.slug(name) || 'ref';
-		if (!/^[a-z]/.test(key)) key = 'ref' + key;
+		let creators = item.getCreators().map(c => ({ kind: Zotero.CreatorTypes.getName(c.creatorTypeID), name: c.lastName || '' }));
 		// 'year' handles types whose date field has another name (dateDecided, ...)
 		let year = item.getField('year');
 		if (!/^\d{4}$/.test(year) || year === '0000') year = '';
-		return key + (year || '');
+		let field = n => item.getField(n) || '';
+		return KeyGen.keyFor({ type: item.itemType, title: field('title') || field('caseName') || field('nameOfAct'), shortTitle: field('shortTitle'), year, creators });
 	},
 
 	suffix(n) {
@@ -207,21 +215,13 @@ HiCite = {
 		return m && this.KEY_OK.test(m[1]) ? m[1] : '';
 	},
 
-	// The key hicite uses for an item: a pinned key in Extra; with the key store "Zotero's Citation Key
-	// field", the usable key in that field when there is none in Extra (a key left in Extra is hicite's
-	// own and wins until "Move Keys to Citation Key Field" has moved it, so switching the setting never
-	// changes a key you already use).
+	// The key hicite uses for an item: a "Citation Key:" line in Extra if there still is one (documents cite
+	// it), else the usable key in the Citation Key field.
 	getKey(item) {
-		let extra = this.getExtraKey(item);
-		if (extra || !this.storeInField()) return extra;
-		return this.getNativeKey(item);
+		return this.getExtraKey(item) || this.getNativeKey(item);
 	},
 
-	storeInField() {
-		return this.pref('keyStore') === 'field';
-	},
-
-	// The key in Zotero's native Citation Key field (e.g. from Better BibTeX), if usable.
+	// The key in Zotero's native Citation Key field (Better BibTeX's, or one made here), if usable.
 	getNativeKey(item) {
 		try {
 			let key = item.getField('citationKey');
@@ -248,18 +248,16 @@ HiCite = {
 		return true;
 	},
 
-	// Store `key` for the item: in Zotero's Citation Key field (and drop the line from Extra) when that is
-	// the key store and the item type has the field, else as a "Citation Key:" line in Extra.
+	// Store `key`: in the Citation Key field, or as a "Citation Key:" line in Extra for an item type without one.
 	setKey(item, key) {
-		if (this.storeInField() && this.writeNativeKey(item, key)) return;
+		if (this.writeNativeKey(item, key)) return;
 		this.clearExtraKey(item);
 		let extra = item.getField('extra') || '';
 		item.setField('extra', (extra ? extra + '\n' : '') + 'Citation Key: ' + key);
 	},
 
 	async isTaken(item, key) {
-		let conditions = [['extra', 'contains', 'Citation Key: ' + key]];
-		if (this.storeInField()) conditions.push(['citationKey', 'is', key]);
+		let conditions = [['extra', 'contains', 'Citation Key: ' + key], ['citationKey', 'is', key]];
 		for (let [field, op, value] of conditions) {
 			let s = new Zotero.Search();
 			s.libraryID = item.libraryID;
@@ -267,7 +265,7 @@ HiCite = {
 			s.addCondition('noChildren', 'true');
 			let ids = await s.search();
 			for (let other of await Zotero.Items.getAsync(ids)) {
-				if (other.id !== item.id && this.getKey(other) === key) return true;
+				if (other.id !== item.id && this.getKey(other).toLowerCase() === key.toLowerCase()) return true;
 			}
 		}
 		return false;
@@ -283,23 +281,74 @@ HiCite = {
 		return base + item.key.toLowerCase();
 	},
 
-	// Pin a citation key in Extra. A usable existing key is kept; otherwise, if the key source
-	// setting is "adopt", a usable native key (Better BibTeX's) is adopted so that .bib and hicite
-	// keys agree; otherwise one is generated. `force` always generates.
+	// Make sure an item has its key, and return it.
+	//  - a "Citation Key:" line in Extra (an older version of this add-on pinned keys there) is moved into the
+	//    Citation Key field, replacing a different key that is already there: the pinned one is what documents cite;
+	//  - a key already in the field is kept;
+	//  - with Better BibTeX installed, an item with no key is left for it to fill in (nothing is made here, so
+	//    there is no second set of keys); otherwise a key is made.
+	// `force` replaces the key: Better BibTeX is asked to make a new one (the key is cleared and the item saved so
+	// that it notices), or, without it, one is made here.
 	async pin(item, { force = false } = {}) {
 		if (!item.isRegularItem() || item.isFeedItem) return '';
-		let existing = this.getKey(item);
-		if (existing && !force) return existing;
-		// Better BibTeX's key is only adopted when the "adopt" key source is selected.
-		let native = !force && this.pref('keySource') === 'adopt' && !this.storeInField() ? this.getNativeKey(item) : '';
-		let key = native || await this.uniqueKey(item);
-		if (key === existing) return key;
+		let extra = this.getExtraKey(item), native = this.getNativeKey(item);
+		if (force && this.bbt.active) {
+			try { item.setField('citationKey', ''); } catch (e) { /* item type without the field */ }
+			this.clearExtraKey(item);
+			await item.saveTx({ skipDateModifiedUpdate: true }); // not quiet: Better BibTeX fills in the empty key
+			return '';
+		}
+		if (!force) {
+			if (extra) {
+				if (native !== extra && this.writeNativeKey(item, extra)) await item.saveTx({ skipDateModifiedUpdate: true, skipNotifier: true });
+				return extra;
+			}
+			if (native) return native;
+			if (this.bbt.active) return '';
+		}
+		let key = await this.uniqueKey(item);
+		if (key === (extra || native)) return key;
 		this.setKey(item, key);
-		// skipNotifier: other add-ons must not react to this edit. Better BibTeX, for one, can be
-		// set to regenerate an item's key whenever the item changes, which would replace the
-		// user's keys just because we pinned one.
+		// skipNotifier: other add-ons must not react to this edit (Better BibTeX can be set to regenerate an
+		// item's key whenever the item changes, which would replace a key just because we stored one).
 		await item.saveTx({ skipDateModifiedUpdate: true, skipNotifier: true });
 		return key;
+	},
+
+	// ------------------------------------------------------- Better BibTeX
+
+	async detectBBT() {
+		let found = { installed: false, active: false, version: '' };
+		try {
+			if (!this.AddonManager) this.AddonManager = ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs').AddonManager;
+			let addon = await this.AddonManager.getAddonByID(this.BBT_ID);
+			if (addon) found = { installed: true, active: !!addon.isActive, version: String(addon.version || '') };
+		}
+		catch (e) { Zotero.debug(`hicite: could not look up Better BibTeX: ${e}`); }
+		this.bbt = found;
+		return found;
+	},
+
+	// With Better BibTeX active, give it the formula above (once; the previous formula is kept in the
+	// hidden pref translators.hicite.bbtFormulaBackup). Existing keys are not touched: Better BibTeX only
+	// uses a formula for items that have no key.
+	async syncBBTFormula() {
+		if (!this.bbt.active || this.pref('bbtFormula') !== 'on') return false;
+		const P = 'translators.better-bibtex.citekeyFormat', E = 'translators.better-bibtex.citekeyFormatEditing';
+		if (Zotero.Prefs.get(P) === this.BBT_FORMULA && Zotero.Prefs.get(E) === this.BBT_FORMULA) return false;
+		let before = Zotero.Prefs.get(P);
+		if (before && before !== this.BBT_FORMULA && !Zotero.Prefs.get('translators.hicite.bbtFormulaBackup')) {
+			Zotero.Prefs.set('translators.hicite.bbtFormulaBackup', before);
+		}
+		Zotero.Prefs.set(P, this.BBT_FORMULA);
+		Zotero.Prefs.set(E, this.BBT_FORMULA);
+		this.notify('Set the Better BibTeX citation key formula for legal sources (new items only; existing keys are kept)');
+		return true;
+	},
+
+	async refreshBBT() {
+		await this.detectBBT();
+		return this.syncBBTFormula();
 	},
 
 	// ------------------------------------------------------------ translator
@@ -586,9 +635,9 @@ HiCite = {
 	confirmRegenerate(what, count, where) {
 		try {
 			return Services.prompt.confirm(Zotero.getMainWindow(), 'Regenerate citation keys',
-				`Regenerate the citation keys of ${count} ${what} in ${where}?\n\nEach key is replaced by one generated ` +
-				'from the current settings. Anything that cites the old keys (LaTeX files, exported .tex files) ' +
-				'will need updating.');
+				`Regenerate the citation keys of ${count} ${what} in ${where}?\n\nEach key is replaced by a new one (made by ` +
+				'Better BibTeX from its formula if it is installed, otherwise here). Anything that cites the old keys ' +
+				'(LaTeX files, exported .tex files) will need updating.');
 		}
 		catch (e) { return false; } // no way to ask: do nothing
 	},
@@ -648,8 +697,7 @@ HiCite = {
 			if (plan.overwrite.length > 10) lines.push(`   … and ${plan.overwrite.length - 10} more`);
 		}
 		lines.push(`${plan.stored} items already have their key in the field only, and ${plan.none} have no key yet; those are left alone.`, '',
-			'hicite keys do not change, so documents that cite them are unaffected. Afterwards hicite stores and reads keys in the ' +
-			`Citation Key field (the "Key store" setting is switched). ${n} items will be modified.`);
+			`hicite keys do not change, so documents that cite them are unaffected. ${n} items will be modified.`);
 		return lines.join('\n');
 	},
 
@@ -673,7 +721,6 @@ HiCite = {
 			}
 			else failed++;
 		}
-		Zotero.Prefs.set('translators.hicite.keyStore', 'field');
 		this.schedule(new Set([scope.libraryID]));
 		return { moved, failed, plan, cancelled: false };
 	},
@@ -787,7 +834,9 @@ HiCite = {
 		this.rootURI = rootURI;
 
 		try { await this.installTranslator(); } catch (e) { Zotero.logError(e); }
-		try { await this.refreshPhoenix(); this.watchPhoenix(); } catch (e) { Zotero.logError(e); }
+		try { await this.refreshPhoenix(); } catch (e) { Zotero.logError(e); }
+		try { await this.refreshBBT(); } catch (e) { Zotero.logError(e); }
+		this.watchPhoenix();
 
 		this.registerMenus();
 		this.patchExport();
@@ -806,6 +855,7 @@ HiCite = {
 		for (let name of [...Object.keys(this.SETTINGS), 'refresh']) {
 			this.settingObservers.push(Zotero.Prefs.registerObserver('translators.hicite.' + name, () => {
 				if (name === 'phoenixMode') this.syncPhoenixPref(); // the override changed: recompute what the translator is told
+				if (name === 'bbtFormula') this.syncBBTFormula().catch(e => Zotero.logError(e));
 				this.schedule(null);
 			}));
 		}
