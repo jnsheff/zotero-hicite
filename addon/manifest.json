@@ -3,6 +3,10 @@
   "name": "hicite Export for Zotero",
   "version": "0.6.0",
   "description": "Pins stable citation keys and exports (and auto-exports) references as hicite reference definitions, in the manner of Better BibTeX.",
+  "icons": {
+    "48": "icon.svg",
+    "96": "icon.svg"
+  },
   "applications": {
     "zotero": {
       "id": "hicite-export@zotero.local",

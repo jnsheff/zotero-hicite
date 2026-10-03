@@ -27,6 +27,11 @@
  *   3. To undo: set MODE = 'revert'. It undoes the most recent apply (using its log
  *      file) and then retires that log; run it again to step back one more apply.
  *
+ * If you use the citation-phoenix add-on, do NOT run this: citation-phoenix keeps Juris-M court IDs in the Court
+ * field on purpose, and this script would replace them with plain abbreviations. The hicite add-on translates those
+ * IDs itself while exporting (Settings > hicite > Legal data). The script stops with a message when it finds
+ * citation-phoenix enabled; set ALLOW_WITH_PHOENIX = true only if you really intend to stop using it.
+ *
  * Safety:
  *  - Nothing is overwritten with a guess: an existing Reporter is never changed;
  *    a court is only rewritten when it can be translated with certainty, and
@@ -52,6 +57,8 @@ const FILL_REPORTER_FROM_JURISM = true;  // copy the reporter out of the legacy 
 const INFER_REPORTER = true;             // Supreme Court + volume + page, no reporter -> "U.S."
 const TRANSLATE_COURT_IDS = true;        // "court.appeals" + jurisdiction -> "2d Cir." etc.
 const NORMALIZE_TEXT_COURTS = false;    // also rewrite typed-out courts ("... Federal Circuit" -> "Fed. Cir.")
+
+const ALLOW_WITH_PHOENIX = false;        // true: run even though citation-phoenix is installed and enabled (see below)
 
 const LOG_PREFIX = 'hicite-reporter-fill-';
 
@@ -326,6 +333,19 @@ if (typeof HICITE_TEST !== 'undefined') {
 }
 
 // ------------------------------------------------------------------ main
+
+if (!ALLOW_WITH_PHOENIX && typeof ChromeUtils !== 'undefined') {
+	try {
+		const { AddonManager } = ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs');
+		const phoenix = await AddonManager.getAddonByID('citation-phoenix@michaelrisch.com');
+		if (phoenix && phoenix.isActive) {
+			return 'STOPPED, nothing was changed: citation-phoenix is installed and enabled. It keeps Juris-M court IDs in the ' +
+				'Court field, and this script would replace them with plain abbreviations. hicite translates the IDs itself when ' +
+				'exporting. To run this anyway, disable citation-phoenix or set ALLOW_WITH_PHOENIX = true.';
+		}
+	}
+	catch (e) { /* cannot tell: carry on, the script has its own dry run and backup checks */ }
+}
 
 const dataDir = Zotero.DataDirectory.dir;
 const OPTIONS = { fillReporter: FILL_REPORTER_FROM_JURISM, inferReporter: INFER_REPORTER,

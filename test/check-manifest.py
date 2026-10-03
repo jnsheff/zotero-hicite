@@ -30,6 +30,11 @@ if os.path.exists(upath):
         if not re.match(r'^sha256:[0-9a-f]{64}$', u.get('update_hash', '')):
             errors.append('updates.json update_hash malformed')
 
+# every icon the manifest names must exist in the add-on, and be the same SVG file or an image file
+for size, path in (m.get('icons') or {}).items():
+    if not os.path.isfile(os.path.join(here, '..', 'addon', path)):
+        errors.append(f'icons.{size}: {path} is not in addon/')
+
 target = vt(sys.argv[1] if len(sys.argv) > 1 else '9.0.6')
 lo = z.get('strict_min_version')
 hi = z.get('strict_max_version', '')

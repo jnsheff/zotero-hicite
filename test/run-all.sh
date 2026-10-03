@@ -23,6 +23,7 @@ run '^keys OK'              "$JSC" test/keys-jsc.js
 run '^keystore OK'          "$JSC" test/keystore-jsc.js
 run '^bootstrap OK'         "$JSC" test/bootstrap-jsc.js
 run '^fill-reporter OK'     "$JSC" test/fill-reporter-jsc.js
+run '^phoenix OK'           "$JSC" test/phoenix-jsc.js
 run '^runjob OK'            "$JSC" test/runjob-jsc.js
 run '^all keys match'       osascript -l JavaScript test/parity-jxa.js
 osascript -l JavaScript test/run-jxa.js >/dev/null || fail=1

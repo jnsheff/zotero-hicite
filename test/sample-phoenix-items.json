@@ -1,0 +1,104 @@
+[
+ {
+  "itemType": "case",
+  "caseName": "Abercrombie & Fitch Co. v. Hunting World, Inc.",
+  "shortTitle": "Abercrombie",
+  "reporter": "F.2d",
+  "reporterVolume": "537",
+  "firstPage": "4",
+  "dateDecided": "1976-01-16",
+  "court": "court.appeals",
+  "extra": "mlzsync1:{\"extrafields\":{\"reporter\":\"F.2d\",\"jurisdiction\":\"005us:c2United States|US|Second Circuit\"}}\nCitation Key: abercrombie"
+ },
+ {
+  "itemType": "case",
+  "caseName": "Boomer v. Atlantic Cement Co.",
+  "shortTitle": "Boomer",
+  "reporter": "N.Y.2d",
+  "reporterVolume": "26",
+  "firstPage": "219",
+  "dateDecided": "1970-03-04",
+  "court": "court.appeals",
+  "extra": "mlzsync1:{\"extrafields\":{\"reporter\":\"N.Y.2d\",\"jurisdiction\":\"005us:nyUnited States|N.Y.\",\"court\":\"court.appeals\"}}\nCitation Key: boomer"
+ },
+ {
+  "itemType": "case",
+  "caseName": "Lane Capital Management, Inc. v. Lane Capital Management, Inc.",
+  "shortTitle": "Lane",
+  "reporter": "F. Supp. 2d",
+  "reporterVolume": "1",
+  "firstPage": "1",
+  "dateDecided": "1998-07-31",
+  "court": "district.court",
+  "extra": "mlzsync1:{\"extrafields\":{\"reporter\":\"F. Supp. 2d\",\"jurisdiction\":\"011us:c2:ny.sdUnited States|US|Second Circuit|S.D. New York\"}}aff'd, 192 F.3d 337 (2d Cir. 1999)\nCitation Key: lane"
+ },
+ {
+  "itemType": "case",
+  "caseName": "Sony Corp. of America v. Universal City Studios, Inc.",
+  "shortTitle": "Sony",
+  "reporterVolume": "464",
+  "firstPage": "417",
+  "dateDecided": "1984-01-17",
+  "court": "supreme.court",
+  "extra": "mlzsync1:{\"extrafields\":{\"reporter\":\"U.S.\",\"jurisdiction\":\"002usUnited States|US\"}}\nCitation Key: sony"
+ },
+ {
+  "itemType": "case",
+  "caseName": "L'Oréal SA v. Bellure NV",
+  "shortTitle": "Loreal",
+  "docketNumber": "C-487/07",
+  "dateDecided": "2009-06-18",
+  "court": "ecj~chamber.1",
+  "url": "https://example.org/c-487-07",
+  "extra": "mlzsync1:{\"extrafields\":{\"jurisdiction\":\"011eu.int:cjeuEuropean Union|EU.INT|Court of Justice of the European Union\"}}\nCitation Key: loreal"
+ },
+ {
+  "itemType": "case",
+  "caseName": "Arnstein v. Porter",
+  "shortTitle": "Arnstein",
+  "reporter": "F.2d",
+  "reporterVolume": "154",
+  "firstPage": "464",
+  "dateDecided": "1946-01-01",
+  "court": "2d Cir.",
+  "extra": "mlzsync1:{\"extrafields\":{\"reporter\":\"F.2d\",\"jurisdiction\":\"005us:c2United States|US|Second Circuit\"}}\nCitation Key: arnstein"
+ },
+ {
+  "itemType": "statute",
+  "nameOfAct": "Rules of Practice in Trademark Cases",
+  "code": "C.F.R.",
+  "codeNumber": "37",
+  "section": "2.1",
+  "extra": "mlzsync1:{\"extrafields\":{\"jurisdiction\":\"002usUnited States|US\"},\"xtype\":\"regulation\"}\nCitation Key: tmrules"
+ },
+ {
+  "itemType": "statute",
+  "nameOfAct": "Trademark Modernization Act Implementing Regulations",
+  "code": "C.F.R.",
+  "codeNumber": "37",
+  "section": "2.101",
+  "dateEnacted": "2021-12-18",
+  "extra": "mlzsync1:{\"extrafields\":{\"jurisdiction\":\"002usUnited States|US\"},\"xtype\":\"regulation\"}\nCitation Key: tmaregs"
+ },
+ {
+  "itemType": "statute",
+  "nameOfAct": "Changes To Implement Provisions of the Trademark Modernization Act of 2020",
+  "code": "Fed. Reg.",
+  "codeNumber": "86",
+  "pages": "64300",
+  "dateEnacted": "2021-11-17",
+  "extra": "mlzsync1:{\"extrafields\":{\"gazetteFlag\":\"1\",\"jurisdiction\":\"002usUnited States|US\"},\"xtype\":\"regulation\"}\nCitation Key: tmafedreg"
+ },
+ {
+  "itemType": "document",
+  "title": "Nice Agreement Concerning the International Classification of Goods and Services for the Purposes of the Registration of Marks",
+  "date": "1979-09-28",
+  "extra": "mlzsync1:{\"extrafields\":{\"reporter\":\"WIPO Doc\",\"treatyNumber\":\"TRT/NICE/001\",\"signingDate\":\"September 28, 1979\"},\"xtype\":\"treaty\"}\nCitation Key: nice"
+ },
+ {
+  "itemType": "document",
+  "title": "Some Report",
+  "date": "2020",
+  "extra": "Citation Key: somereport"
+ }
+]

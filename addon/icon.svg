@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <title>hicite</title>
+  <!-- a red square turned 45 degrees (a diamond), 32 units a side so its points just fit the 48 x 48 box -->
+  <rect x="8" y="8" width="32" height="32" fill="#c8102e" transform="rotate(45 24 24)"/>
+  <text x="24" y="30.4" text-anchor="middle" fill="#ffffff"
+        font-family="Georgia, 'Times New Roman', Times, serif" font-size="19" font-weight="bold">HI</text>
+</svg>

@@ -31,12 +31,67 @@ HiCite = {
 	// Settings shared with the export translator (which reads them with Zotero.getHiddenPref,
 	// i.e. the prefs extensions.zotero.translators.hicite.*). Defaults also live in prefs.js and
 	// in the translator's header; keep the three in step.
-	SETTINGS: { keySource: 'own', keyStore: 'extra', caseKeys: 'shorttitle', shortTitleInline: true, omitRedundantSite: true, includeUrls: true, maxAuthors: '0' },
+	SETTINGS: { keySource: 'own', keyStore: 'extra', caseKeys: 'shorttitle', shortTitleInline: true, omitRedundantSite: true, includeUrls: true, maxAuthors: '0', titleCase: true, longLists: '8', phoenixMode: 'auto', phoenix: 'off' },
 	settingObservers: [],
+
+	// citation-phoenix (https://github.com/rischconsulting/citation-phoenix) keeps Juris-M's legal data in Extra and
+	// Juris-M court IDs in the Court field. The translator reads that data only when the hidden pref `phoenix` is
+	// "on"; this add-on keeps the pref in step with whether citation-phoenix is installed and enabled (setting
+	// `phoenixMode` can force it on or off). The translator runs in a sandbox and cannot ask for itself.
+	PHOENIX_ID: 'citation-phoenix@michaelrisch.com',
+	phoenix: { installed: false, active: false, version: '' },
+	addonListener: null,
+	AddonManager: null,
 
 	pref(name) {
 		let v = Zotero.Prefs.get('translators.hicite.' + name);
 		return v === undefined || v === null ? this.SETTINGS[name] : v;
+	},
+
+	// ------------------------------------------------------ citation-phoenix
+
+	// Look up citation-phoenix in the add-on manager. Failure to ask counts as "not installed", which is the
+	// behaviour of an environment without it.
+	async detectPhoenix() {
+		let found = { installed: false, active: false, version: '' };
+		try {
+			if (!this.AddonManager) this.AddonManager = ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs').AddonManager;
+			let addon = await this.AddonManager.getAddonByID(this.PHOENIX_ID);
+			if (addon) found = { installed: true, active: !!addon.isActive, version: String(addon.version || '') };
+		}
+		catch (e) { Zotero.debug(`hicite: could not look up citation-phoenix: ${e}`); }
+		this.phoenix = found;
+		return found;
+	},
+
+	// "on" or "off": the setting if it says so, else whether citation-phoenix is enabled.
+	phoenixEffective() {
+		let mode = this.pref('phoenixMode');
+		if (mode === 'on' || mode === 'off') return mode;
+		return this.phoenix.active ? 'on' : 'off';
+	},
+
+	// Publish the mode to the translator. Changing the pref re-runs the auto-exports (see registerSettings).
+	syncPhoenixPref() {
+		let want = this.phoenixEffective();
+		if (Zotero.Prefs.get('translators.hicite.phoenix') !== want) Zotero.Prefs.set('translators.hicite.phoenix', want);
+		return want;
+	},
+
+	async refreshPhoenix() {
+		await this.detectPhoenix();
+		return this.syncPhoenixPref();
+	},
+
+	// Follow citation-phoenix being installed, enabled, disabled or removed while Zotero runs.
+	watchPhoenix() {
+		if (!this.AddonManager || this.addonListener) return;
+		let changed = addon => { if (!this.destroyed && addon?.id === this.PHOENIX_ID) this.refreshPhoenix().catch(e => Zotero.logError(e)); };
+		this.addonListener = {};
+		for (let ev of ['onEnabled', 'onDisabled', 'onInstalled', 'onUninstalling', 'onUninstalled', 'onOperationCancelled']) {
+			this.addonListener[ev] = changed;
+		}
+		this.AddonManager.addAddonListener(this.addonListener);
 	},
 
 	// ------------------------------------------------------------- keys
@@ -732,6 +787,7 @@ HiCite = {
 		this.rootURI = rootURI;
 
 		try { await this.installTranslator(); } catch (e) { Zotero.logError(e); }
+		try { await this.refreshPhoenix(); this.watchPhoenix(); } catch (e) { Zotero.logError(e); }
 
 		this.registerMenus();
 		this.patchExport();
@@ -748,7 +804,10 @@ HiCite = {
 	async registerSettings() {
 		// one observer per key: Zotero.Prefs observers match an exact pref name
 		for (let name of [...Object.keys(this.SETTINGS), 'refresh']) {
-			this.settingObservers.push(Zotero.Prefs.registerObserver('translators.hicite.' + name, () => this.schedule(null)));
+			this.settingObservers.push(Zotero.Prefs.registerObserver('translators.hicite.' + name, () => {
+				if (name === 'phoenixMode') this.syncPhoenixPref(); // the override changed: recompute what the translator is told
+				this.schedule(null);
+			}));
 		}
 		try {
 			await Zotero.PreferencePanes.register({
@@ -767,6 +826,10 @@ HiCite = {
 		this.settingObservers = [];
 		delete Zotero.HiCitePrefs; // defined by the Settings pane's script
 		this.unpatch?.();
+		if (this.addonListener) {
+			try { this.AddonManager.removeAddonListener(this.addonListener); } catch (e) { /* shutting down */ }
+			this.addonListener = null;
+		}
 		this.token++; // cancels a pending debounce
 		if (this.observerID) Zotero.Notifier.unregisterObserver(this.observerID);
 		for (let id of this.menuIDs) Zotero.MenuManager.unregisterMenu(id);

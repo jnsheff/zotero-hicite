@@ -66,21 +66,34 @@ To build it yourself: `make xpi`.
 
 | Zotero | hicite |
 |---|---|
-| Journal Article | `jrnart` |
+| Journal Article | `jrnart`; with no publication title (or, for a web-native piece, no volume and pages) it is cited like a web page instead, with a `% hicite:` note in the file |
 | Book | `book` |
 | Book Section, Conference Paper, Encyclopedia Article | `citecontainer`, with the container written inline as `in=book: {...}` |
 | Magazine / Newspaper Article | `magart` |
 | Preprint (arXiv, SSRN, ...) | `workingpaper` (`number` from the Archive ID, or read from the URL/DOI; `publisher` = repository); a preprint with no identifier is cited like a web page |
-| Thesis / Manuscript / Letter | `manuscript` |
+| Thesis / Manuscript | `manuscript` |
+| Letter | `letter` (sender, recipient as `to`) when it has a sender or recipient, else `manuscript` |
 | Report | `workingpaper` (if it has a report number) else `book` |
-| Case | `case` (`p`/`d` split at "v."; Short Title as `inline`) |
-| Statute (code + section) | `statcode` |
+| Case | `case` (`p`/`d` split at "v."; Short Title as `inline`; a reported case is dated by its year, an unreported one by its full date; reporter "Slip Op." becomes the `slip` flag) |
+| Case named for a court paper ("Complaint: Garcia v. Character Technologies", "Order Granting ..., Bartz v. Anthropic PBC") or with the Short Title "Complaint" | `casedoc`, the case as an anonymous reference |
+| Statute (code + section) | `statcode`: the one-line form (`17 U.S.C. S 102`) for a bare section; the keyword form (name, short form, year kept) for an act with a name or a Short Title |
+| Statute filed under "Federal Register" (executive orders, agency guidance; also "C.F.R." with a page) | `govdoc` (`Exec. Order No. 14110, Title, 88 Fed. Reg. 75191`) |
+| Statute "U.S. Const. Art. I, §8, cl. 8" / "U.S. Const. amend. I" | `const` / `constamend` |
+| Bill | `bill`; hicite needs the Congress, taken from Session, else "119th Congress" in the URL or text, else the date |
 | Web Page, Blog Post and everything else | `website` |
 
 Editors and translators (books and containers): hicite keeps them in one `editor` list with an `edtype` role
 label. Translators alone are listed with `edtype={trans.}`; the same people who edited and translated get
 `ed. & trans.` (`eds. & trans.` for several); a translator who is not the editor goes in a parenthetical, since
 hicite cannot label two different roles in one reference.
+
+Text conventions, matching a hand-coded hicite file: accented letters, curly quotes and dashes are written as TeX
+(`G{\"o}del`, `---`), because hicite builds control-sequence names from journal names, institutions and case names
+and stops on a raw non-ASCII character there (emoji are dropped); a list of three or more names carries `noetal`
+(hicite warns without it; the output is unchanged); titles and journal names get Bluebook title case
+(*Finding structure in time* becomes *Finding Structure in Time*; words with capitals inside, such as *iPhone*, titles in
+another language, and titles already in title case are left alone; turn it off in Settings); a Stanford-Encyclopedia
+style edition ("Spring 2023") becomes the container's date; a page of "0" is ignored. An empty item is skipped with a comment.
 
 Other export rules: with an *Authors listed* limit set, a longer author list is cut off and the last name kept
 gets hicite's " et al." (`author={Cy {Gamma} et al.}`); editors are never cut. A Short Title becomes the short-form name (`inline`); single-field names that look
@@ -102,7 +115,33 @@ lines are exported as parameters of the same name. The companion plugin
 [zotero-legal](https://github.com/jnsheff/zotero-legal) adds the item-pane rows and menus for editing them;
 `test/legal-types.json` is a copy of its catalog.
 
+## citation-phoenix (Juris-M data)
+
+[citation-phoenix](https://github.com/rischconsulting/citation-phoenix) brings Juris-M's legal features to Zotero 8-10. It keeps
+Juris-M's data in an `mlzsync1:` block in Extra, and it keeps Juris-M court IDs (`court.appeals`, `district.court`) in the Court
+field, which a hicite file cannot use as written. This add-on notices whether citation-phoenix is installed and enabled
+(Zotero's add-on manager, re-checked whenever it is enabled, disabled, installed or removed) and behaves accordingly:
+
+| | without citation-phoenix | with citation-phoenix |
+|---|---|---|
+| Court | the Court field, as typed | a court ID is translated using the case's jurisdiction (`court.appeals` + Second Circuit = `2d Cir.`, `district.court` + S.D. New York = `S.D.N.Y.`). A court the reporter already identifies is left out (`N.Y.2d`, `U.S.`). An ID it cannot translate with certainty is left out and noted in the `.tex` file (`% hicite: court ecj~chamber.1 [eu.int:cjeu] not translated`). A typed court (`2d Cir.`) is never touched. |
+| Reporter | Zotero's Reporter field | the field, else the reporter in the Juris-M data |
+| Regulations | statutes export as `statcode` | a statute citation-phoenix marks as a regulation exports as `regcode`; one filed under "Federal Register" is still a `govdoc` |
+| Treaties | a Document is a web page | a Document citation-phoenix marks as a treaty exports as `treaty` (name, signing date, reporter, volume, page) |
+| Migration script | usable | refuses to run (it would replace the court IDs citation-phoenix keeps) |
+
+Everything in the right-hand column is off when citation-phoenix is absent, so an environment without it exports exactly as before.
+Settings > hicite > **Legal data** shows what was found and lets you choose *Automatically* (the default), *Always* or *Never*.
+Technically the add-on sets the hidden pref `translators.hicite.phoenix` to `on` or `off`, because the export translator runs in a
+sandbox and cannot look at add-ons itself; changing the pref re-runs your auto-exports.
+
+What it does not do (yet): foreign courts and foreign-law types (`eucase`, `frcase`, `engstat`, ...), citation-phoenix's gazette,
+legal-commentary and classic types, and parallel citations are exported as ordinary Zotero items.
+
 ## Migrating from Juris-M
+
+If you use citation-phoenix, skip this section: the add-on reads its data directly (see above), and the script below refuses to
+run while citation-phoenix is enabled.
 
 Juris-M kept a case's reporter (e.g. `F.3d`) in Extra as an `mlzsync1:` block and its court as
 an internal ID (`court.appeals`, `district.court`, `supreme.court`), neither of which this
@@ -170,11 +209,14 @@ run fails):
    deleted collections, failure isolation), key selection (usable vs. unusable keys, Better BibTeX keys, duplicates, cases),
    menu registration against Zotero's menu rules, the manifest rules, the
    Export-dialog hook, and the publisher option;
-2. key-generator parity between the plugin and the translator (the algorithm
+2. citation-phoenix support: detection and the pref the translator reads, the translator with that mode on and off (off must
+   export exactly as before), the court tables against `tools/fill-reporter-from-jurism.js`, and that script's guard; the
+   phoenix-mode output is also in the compile below;
+3. key-generator parity between the plugin and the translator (the algorithm
    is duplicated because translators run in a sandbox);
-3. the translator on `test/sample-items.json` (including TeX special
+4. the translator on `test/sample-items.json` (including TeX special
    characters, `#`/`%` in URLs, unbalanced braces, pinned-key priority);
-4. a compile of that output against the **current CTAN release of hicite**
+5. a compile of that output against the **current CTAN release of hicite**
    (`test/fetch-ctan-hicite.sh` downloads and builds it into `test/ctan-hicite/`;
    any hicite installed elsewhere is masked). Last run: hicite 1.1.0, no errors.
 
@@ -190,7 +232,7 @@ The key test needs macOS's `jsc` (JavaScriptCore shell); the others use `osascri
   in Settings; there is no free-form key formula. Existing keys are pinned, so a changed setting applies to
   items without a key: use *Regenerate* to re-key existing ones.
 * The Settings pane could only be checked against Zotero's source and a fake DOM, not run in Zotero.
-* Legal types beyond the table (bills, hearings, regulations, ...) fall back to
+* Legal types beyond the table (hearings, ...) fall back to
   `website`; extend `emit()` in `addon/translator/hicite.js`.
 * Journal names are exported unabbreviated; hicite abbreviates them itself.
 * `update_url` is a placeholder (`https://localhost/...`): Zotero refuses manifests without

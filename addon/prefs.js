@@ -7,3 +7,7 @@ pref("extensions.zotero.translators.hicite.omitRedundantSite", true);
 pref("extensions.zotero.translators.hicite.includeUrls", true);
 pref("extensions.zotero.translators.hicite.refresh", "");
 pref("extensions.zotero.translators.hicite.maxAuthors", "0");
+pref("extensions.zotero.translators.hicite.titleCase", true);
+pref("extensions.zotero.translators.hicite.longLists", "8");
+pref("extensions.zotero.translators.hicite.phoenixMode", "auto");
+pref("extensions.zotero.translators.hicite.phoenix", "off");

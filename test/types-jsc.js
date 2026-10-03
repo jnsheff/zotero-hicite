@@ -43,6 +43,8 @@ cat.types.forEach(function (t) {
 	t.fields.forEach(function (f) { if (!f.z) extra += 'hicite-' + f.p + ': ' + (f.flag ? 'yes' : 'v_' + f.p) + '\n'; });
 	item.extra = (t.virtual || t.id === 'statsess' ? extra : extra.replace(/hicite-doctype:.*\n/, '')) + 'Citation Key: ' + id;
 	if (t.base === 'statute') { item.code = 'U.S.C.'; item.section = '1'; item.codeNumber = '1'; }
+	if (t.base === 'journalArticle') { item.publicationTitle = 'J'; item.volume = '1'; item.pages = '1'; } // a journal and pages, or it is cited as a web page
+	if (t.base === 'bill') item.session = '119'; // the Congress, or it is cited as a web page
 	var o = runTranslator(src, [item], {}, {});
 	var m = /\\def([a-z]+)\{/.exec(o);
 	if (!m || (t.id !== 'website' && t.id !== 'magart' && m[1] !== t.id)) errors.push(t.id + ': exported as \\def' + (m && m[1]));

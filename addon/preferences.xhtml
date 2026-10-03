@@ -62,9 +62,46 @@
 				</menupopup>
 			</menulist>
 		</hbox>
+		<checkbox label="Put titles in Bluebook title case (e.g. &quot;Finding structure in time&quot; becomes &quot;Finding Structure in Time&quot;)"
+			preference="extensions.zotero.translators.hicite.titleCase"/>
+		<hbox align="center">
+			<label value="Shorten longer lists to the first two authors, et al.:" control="hicite-longLists"/>
+			<menulist id="hicite-longLists" native="true" preference="extensions.zotero.translators.hicite.longLists">
+				<menupopup>
+					<menuitem label="Never" value="0"/>
+					<menuitem label="Lists of more than 4" value="4"/>
+					<menuitem label="Lists of more than 6" value="6"/>
+					<menuitem label="Lists of more than 8" value="8"/>
+					<menuitem label="Lists of more than 10" value="10"/>
+					<menuitem label="Lists of more than 20" value="20"/>
+				</menupopup>
+			</menulist>
+		</hbox>
 		<checkbox label="Include URLs (kept for web sources; dropped for works with a print citation)"
 			preference="extensions.zotero.translators.hicite.includeUrls"/>
 		<description>Changes apply to the next export and re-run your auto-exports.</description>
+	</groupbox>
+
+	<groupbox>
+		<html:h2>Legal data (citation-phoenix)</html:h2>
+		<label id="hicite-phoenix-status" value="Checking for citation-phoenix…"/>
+		<hbox align="center">
+			<label value="Use its legal data:" control="hicite-phoenixMode"/>
+			<menulist id="hicite-phoenixMode" native="true" preference="extensions.zotero.translators.hicite.phoenixMode">
+				<menupopup>
+					<menuitem label="Automatically (when citation-phoenix is installed and enabled)" value="auto"/>
+					<menuitem label="Always" value="on"/>
+					<menuitem label="Never" value="off"/>
+				</menupopup>
+			</menulist>
+		</hbox>
+		<description>
+			citation-phoenix stores Juris-M's legal data in Extra and Juris-M court IDs such as "court.appeals" in the Court field.
+			When it is in use, hicite turns a court ID into its Bluebook abbreviation ("court.appeals" in the Second Circuit becomes
+			"2d Cir."), takes a missing reporter from the Juris-M data, and writes citation-phoenix regulations as regcode and treaties
+			as treaty. Without it, items export exactly as before. A court ID that cannot be translated with certainty is left out and
+			noted in the .tex file. Changes re-run your auto-exports.
+		</description>
 	</groupbox>
 
 	<groupbox>

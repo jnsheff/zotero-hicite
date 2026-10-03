@@ -15,8 +15,8 @@ HC.id = 'hicite-export@zotero.local'; HC.rootURI = 'jar:file:///x.xpi!/';
 HC.schedule = function (libs) { scheduled.push(libs === null ? null : Array.from(libs)); };
 
 HC.registerSettings().then(function () {
-	eq(observers.map(function (o) { return o.s.name; }).sort(), ['translators.hicite.caseKeys', 'translators.hicite.includeUrls', 'translators.hicite.keySource', 'translators.hicite.keyStore', 'translators.hicite.maxAuthors', 'translators.hicite.omitRedundantSite',
-		'translators.hicite.refresh', 'translators.hicite.shortTitleInline'], 'one observer per setting, plus the refresh signal');
+	eq(observers.map(function (o) { return o.s.name; }).sort(), ['translators.hicite.caseKeys', 'translators.hicite.includeUrls', 'translators.hicite.keySource', 'translators.hicite.keyStore', 'translators.hicite.longLists', 'translators.hicite.maxAuthors', 'translators.hicite.omitRedundantSite',
+		'translators.hicite.phoenix', 'translators.hicite.phoenixMode', 'translators.hicite.refresh', 'translators.hicite.shortTitleInline', 'translators.hicite.titleCase'], 'one observer per setting, plus the refresh signal');
 	observers[0].fn(); eq(scheduled, [null], 'a changed setting re-runs every auto-export');
 	eq(registeredPanes.length, 1, 'one Settings pane');
 	eq([registeredPanes[0].pluginID, registeredPanes[0].src, registeredPanes[0].scripts, registeredPanes[0].label],
@@ -29,7 +29,7 @@ HC.registerSettings().then(function () {
 		if (hdr.indexOf('"hicite.' + k + '": ' + lit) < 0) errors.push('translator header default differs for ' + k);
 	});
 	Zotero.HiCitePrefs = {}; HC.destroy();
-	eq(unregistered.length, 8, 'destroy unregisters every observer'); eq(typeof Zotero.HiCitePrefs, 'undefined', 'destroy removes the pane script global');
+	eq(unregistered.length, 12, 'destroy unregisters every observer'); eq(typeof Zotero.HiCitePrefs, 'undefined', 'destroy removes the pane script global');
 	// regenerateCaseKeys
 	saved = [];
 	function mk(id, type, extra) { return { id: id, itemType: type, _extra: extra || '', pinCalled: false }; }

@@ -80,7 +80,23 @@ Zotero.HiCitePrefs = {
 		}
 	},
 
+	// The line saying whether citation-phoenix was found. Asks the add-on manager itself (this script runs in the
+	// pane, not in the add-on's scope); the add-on does the same to decide what to tell the translator.
+	async renderPhoenix() {
+		let label = document.getElementById('hicite-phoenix-status');
+		if (!label) return;
+		let text = 'citation-phoenix: not installed';
+		try {
+			let { AddonManager } = ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs');
+			let addon = await AddonManager.getAddonByID('citation-phoenix@michaelrisch.com');
+			if (addon) text = `citation-phoenix ${addon.version}: ${addon.isActive ? 'installed and enabled' : 'installed but disabled'}`;
+		}
+		catch (e) { text = 'citation-phoenix: could not check'; }
+		label.setAttribute('value', text);
+	},
+
 	init() {
 		this.render();
+		this.renderPhoenix();
 	},
 };
