@@ -15,7 +15,7 @@ has(entry('aimoratorium'), '\\defcongrec{aimoratorium}', 'congrec'); has(entry('
 has(entry('progressclause'), '\\defconst{progressclause}', 'const'); has(entry('firstamend'), '\\defconstamend{firstamend}', 'constamend'); has(entry('firstamend'), 'number={1}', 'constamend number');
 e = entry('utsa'); has(e, '\\defmodelcode{utsa}', 'modelcode'); has(e, 'instauth={Uniform Law Commission}', 'modelcode instauth');
 e = entry('naiia'); has(e, '\\defstatsess{naiia}', 'statsess'); has(e, 'number={116-283}', 'publicLawNumber'); has(e, 'vol={134}', 'volume'); has(e, 'rep={Stat.}', 'session laws'); has(e, 'page={4523}', 'pages'); has(e, '    slip,', 'flag'); has(e, 'type={Pub. L. No.}', 'type');
-e = entry('cda230'); has(e, '\\defstatcode{cda230}', 'statcode keyword form'); has(e, 'page={230}', 'section'); has(e, 'origsect={509}', 'origsect'); has(e, 'year={2018}', 'year');
+e = entry('cda230'); has(e, '\\defstatcode{cda230}', 'statcode keyword form'); has(e, 'page={S 230}', 'section'); has(e, 'origsect={509}', 'origsect'); has(e, 'year={2018}', 'year');
 e = entry('nofakes'); has(e, '\\defbill{nofakes}', 'bill'); has(e, 'number={S. 1367}', 'number'); has(e, 'congress={119}', 'congress'); has(e, 'status={introduced}', 'status');
 e = entry('doeroe'); has(e, '\\defcase{doeroe}', 'case'); has(e, '    enbanc,', 'enbanc flag'); hasNot(e, 'percuriam', 'flag "no" omitted'); has(e, 'dbid={2024 WL 1}', 'dbid');
 has(entry('gordon1982'), 'type={Note}', 'jrnart type'); has(entry('skinner2020'), 'number={2}', 'book number');

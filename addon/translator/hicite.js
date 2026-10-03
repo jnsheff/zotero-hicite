@@ -949,6 +949,9 @@ function fromRoman(r) {
 	return n;
 }
 
+// hicite's statcode page: "S 230" prints the section sign ("S" stands for it); a section given with one is kept
+function sectionPin(sect) { return /^(?:S\b|\u00A7)/.test(sect) || !/^\d/.test(sect) ? sect : 'S ' + sect; }
+
 function statuteDefs(item, key) {
 	var code = pick(item, 'code'), sect = pick(item, 'section'), num = pick(item, 'codeNumber', 'volume');
 	var name = pick(item, 'nameOfAct', 'title'), pages = pick(item, 'pages');
@@ -976,7 +979,7 @@ function statuteDefs(item, key) {
 		var actLike = /\b(act|code|law|statutes?|amendments?)\b/i.test(name) && !/^section\b/i.test(name);
 		if (actLike || pick(item, 'shortTitle')) {
 			d = new Def(codeType(item), key);
-			return [d.title('name', name).set('vol', num).set('rep', code).set('page', sect.replace(/^(?:S|\u00A7+)\s*/, ''))
+			return [d.title('name', name).set('vol', num).set('rep', code).set('page', sectionPin(sect))
 				.set('year', yearOf(item)).inline(item).url(item)];
 		}
 		return [{ toString: function () {
@@ -1062,7 +1065,7 @@ function emit(item, key) {
 		// keyword form, so that origsect / year / name can be given
 		d = new Def(codeType(item), key);
 		d.set('name', pick(item, 'nameOfAct')).set('vol', pick(item, 'codeNumber', 'volume'))
-			.set('rep', pick(item, 'code')).set('page', pick(item, 'section')).inline(item);
+			.set('rep', pick(item, 'code')).set('page', sectionPin(pick(item, 'section'))).inline(item);
 		return [withExtras(item, d)];
 	}
 
@@ -1120,7 +1123,7 @@ function doExport() {
 	items.forEach(function (it, i) {
 		itemLanguage = String(it.language || '');
 		var title = pick(it, 'title', 'caseName', 'nameOfAct').replace(/\s+/g, ' ');
-		if (!title && !pick(it, 'url') && !(it.creators || []).length) { // an empty item: nothing hicite could cite
+		if (!title && !pick(it, 'url') && !(it.creators || []).length && !pick(it, 'code', 'section')) { // an empty item: nothing hicite could cite
 			Zotero.write('% hicite: skipped ' + keys[i] + ' (the item has no title, creators or URL)\n\n');
 			return;
 		}
