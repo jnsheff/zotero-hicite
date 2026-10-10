@@ -130,12 +130,15 @@ field, which a hicite file cannot use as written. This add-on notices whether ci
 | Reporter | Zotero's Reporter field | the field, else the reporter in the Juris-M data |
 | Regulations | statutes export as `statcode` | a statute citation-phoenix marks as a regulation exports as `regcode`; one filed under "Federal Register" is still a `govdoc` |
 | Treaties | a Document is a web page | a Document citation-phoenix marks as a treaty exports as `treaty` (name, signing date, reporter, volume, page) |
+| Restatements | a Book (hicite's `modelcode` is available through `hicite-doctype: modelcode` on a Document) | a Book that citation-phoenix marks as a **Restatement** (a pseudotype this add-on expects; see below) exports as `modelcode`: the title as `name`, the author (the American Law Institute) as `instauth`, the year, and Edition as the draft name (`Tentative Draft No. 2`). Cited as "Restatement (Second) of Torts § 402A (Am. L. Inst. 1965)". |
 | Migration script | usable | refuses to run (it would replace the court IDs citation-phoenix keeps) |
 
 Everything in the right-hand column is off when citation-phoenix is absent, so an environment without it exports exactly as before.
 Settings > hicite > **Legal data** shows what was found and lets you choose *Automatically* (the default), *Always* or *Never*.
 Technically the add-on sets the hidden pref `translators.hicite.phoenix` to `on` or `off`, because the export translator runs in a
 sandbox and cannot look at add-ons itself; changing the pref re-runs your auto-exports.
+
+The **Restatement** type is not part of upstream citation-phoenix: it is one entry in its `content/schema.json` (`TYPES`, based on Book, plus a field order that puts Edition after the abstract). Add it there to get File > New Item > Restatement; because it is based on Book, an existing restatement keeps every field when you give it the type. Use the Edition field only for a draft name; the series ("Second", "Third") belongs in the title. hicite abbreviates the words of the name as it does for a case name, so "Restatement of the Law" prints as "Restatement of the L." in some titles.
 
 What it does not do (yet): foreign courts and foreign-law types (`eucase`, `frcase`, `engstat`, ...), citation-phoenix's gazette,
 legal-commentary and classic types, and parallel citations are exported as ordinary Zotero items.

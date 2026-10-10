@@ -100,5 +100,52 @@
   "title": "Some Report",
   "date": "2020",
   "extra": "Citation Key: somereport"
+ },
+ {
+  "itemType": "book",
+  "title": "Restatement (Second) of Torts",
+  "creators": [
+   {
+    "creatorType": "author",
+    "name": "American Law Institute",
+    "fieldMode": 1,
+    "lastName": "American Law Institute",
+    "firstName": ""
+   }
+  ],
+  "date": "1965",
+  "publisher": "American Law Institute",
+  "extra": "mlzsync1:{\"extrafields\":{},\"xtype\":\"restatement\"}\nCitation Key: rest2dtorts"
+ },
+ {
+  "itemType": "book",
+  "title": "Restatement of the Law: Copyright",
+  "creators": [
+   {
+    "creatorType": "author",
+    "name": "American Law Institute",
+    "fieldMode": 1,
+    "lastName": "American Law Institute",
+    "firstName": ""
+   }
+  ],
+  "edition": "Tentative Draft No. 2",
+  "date": "2021-04-22",
+  "extra": "mlzsync1:{\"extrafields\":{},\"xtype\":\"restatement\"}\nCitation Key: restcopyrightdraft"
+ },
+ {
+  "itemType": "book",
+  "title": "Restatement (Third) of Torts",
+  "creators": [
+   {
+    "creatorType": "author",
+    "name": "American Law Institute",
+    "fieldMode": 1,
+    "lastName": "American Law Institute",
+    "firstName": ""
+   }
+  ],
+  "date": "1998",
+  "extra": "Citation Key: rest3dtorts"
  }
 ]

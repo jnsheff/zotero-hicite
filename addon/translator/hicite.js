@@ -778,6 +778,17 @@ function treatyDef(item, key) {
 	return d;
 }
 
+// A restatement kept as a Book with phoenix's "restatement" type. hicite cites it as a model code: the name, the sponsoring
+// institution (instauth, e.g. the American Law Institute), the year, and an optional draft name ("Tentative Draft No. 2")
+// taken from Zotero's Edition field. The section is the pin cite, given where it is cited.
+function restatementDef(item, key) {
+	var d = new Def('modelcode', key);
+	d.title('name', pick(item, 'title')).names(item, 'author', 'author', 'instauth', maxAuthors())
+		.set('edition', pick(item, 'edition')).set('year', yearOf(item))
+		.inline(item).url(item);
+	return d;
+}
+
 // A regulation is a statute with phoenix's "regulation" type; in a code it is a hicite regcode (same parameters as statcode).
 function codeType(item) {
 	return phoenixOn() && legalOf(item).xtype === 'regulation' ? 'regcode' : 'statcode';
@@ -1117,6 +1128,7 @@ function emit(item, key) {
 	}
 
 	if (t === 'document' && !dt && phoenixOn() && legalOf(item).xtype === 'treaty') return [withExtras(item, treatyDef(item, key))];
+	if (t === 'book' && phoenixOn() && legalOf(item).xtype === 'restatement') return [withExtras(item, restatementDef(item, key))];
 
 	var defs = emitBase(item, key);
 	// the Extra parameters go on the ordinary definitions too (case, jrnart, book, ...)
