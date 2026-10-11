@@ -35,7 +35,7 @@ eq(entry(on, 'somereport'), entry(off, 'somereport'), 'an ordinary Document is u
 // restatements: a Book marked as a restatement is a hicite model code
 e = entry(on, 'rest2dtorts'); has(e, '\\defmodelcode{rest2dtorts}', 'on: a restatement is a modelcode'); has(e, 'name={Restatement (Second) of Torts}', 'name'); has(e, 'instauth={American Law Institute}', 'the sponsoring institution'); has(e, 'year={1965}', 'a four-digit year'); hasNot(e, 'publisher=', 'no publisher'); hasNot(e, 'edition=', 'no draft name');
 e = entry(on, 'restcopyrightdraft'); has(e, 'edition={Tentative Draft No. 2}', 'the draft name comes from Edition'); has(e, 'year={2021}', 'year of a dated draft');
-has(entry(off, 'rest2dtorts'), '\\defbook{rest2dtorts}', 'off: a restatement is a book, as before'); eq(entry(on, 'rest3dtorts'), entry(off, 'rest3dtorts'), 'an unmarked restatement is a book in both modes'); has(entry(on, 'rest3dtorts'), '\\defbook{rest3dtorts}', 'and stays a book');
+has(entry(off, 'rest2dtorts'), '\\defmodelcode{rest2dtorts}', 'off: a book titled "Restatement (...) of ..." is a model code anyway'); eq(entry(on, 'rest3dtorts'), entry(off, 'rest3dtorts'), 'an unmarked restatement exports the same in both modes'); has(entry(on, 'rest3dtorts'), '\\defmodelcode{rest3dtorts}', 'and is a model code too');
 
 // ---- (1) detection and the pref the translator reads
 function mkZotero(prefs, sets) {

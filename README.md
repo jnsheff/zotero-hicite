@@ -80,9 +80,10 @@ To build it yourself: `make xpi`.
 | Case named for a court paper ("Complaint: Garcia v. Character Technologies", "Order Granting ..., Bartz v. Anthropic PBC") or with the Short Title "Complaint" | `casedoc`, the case as an anonymous reference |
 | Statute (code + section) | `statcode`: the one-line form (`17 U.S.C. S 102`) for a bare section; the keyword form (name, short form, year kept) for an act with a name or a Short Title |
 | Statute filed under C.F.R., NYCRR or an administrative code | `regcode` (same forms as `statcode`), with or without citation-phoenix; the New York City Administrative Code stays a `statcode` |
-| Statute filed under "Stat." with a Public Law Number (what the Westlaw and Lexis web translators save for a session law) | `statsess`; the page is read from Section when Pages is empty. Without a Public Law Number it stays a `statcode` |
+| Statute filed under "Stat." or "Statutes at Large" with a Public Law Number (what the Westlaw and Lexis web translators save for a session law) | `statsess`; the page is read from Section when Pages is empty |
+| The same without a Public Law Number (acts before 1957, proclamations) | `govdoc`: `An Act ..., 36 Stat. 557 (June 20, 1910)` (hicite's `statsess` needs the number) |
 | Statute under "Mass. Gen. Laws" / "M.G.L." with a Code Number | the number is a chapter, not a volume: `Mass. Gen. Laws ch. 78, S 21` |
-| A hyphen in a Section ("50-f", "47-25-1102") | written `\-`, because hicite reads a plain hyphen as a range (`S 50-f` prints "§§ 50–f"); citation-phoenix's own `\-` is accepted. A Section that starts with `§§` (or `SS`) keeps its hyphen as a range, and an en dash passes through |
+| A hyphen in a Section ("50-f", "47-25-1102", "12-101") | written `\-`, because hicite reads a plain hyphen as a range (`S 50-f` prints "§§ 50–f"); citation-phoenix's own `\-` is accepted. A range stays a range: a Section that starts with `§§` (or `SS`), contains a dash, or is two numbers of the same length with the first smaller ("7901-7903", "61.1-61.429") |
 | Statute filed under "Federal Register" (executive orders, agency guidance; also "C.F.R." with a page) | `govdoc` (`Exec. Order No. 14110, Title, 88 Fed. Reg. 75191`) |
 | Statute "U.S. Const. Art. I, §8, cl. 8" / "U.S. Const. amend. I" | `const` / `constamend` |
 | Bill | `bill`; hicite needs the Congress, taken from Session, else "119th Congress" in the URL or text, else the date |
@@ -134,7 +135,7 @@ field, which a hicite file cannot use as written. This add-on notices whether ci
 | Reporter | Zotero's Reporter field | the field, else the reporter in the Juris-M data |
 | Regulations | statutes export as `statcode` | a statute citation-phoenix marks as a regulation exports as `regcode`; one filed under "Federal Register" is still a `govdoc` |
 | Treaties | a Document is a web page | a Document citation-phoenix marks as a treaty exports as `treaty` (name, signing date, reporter, volume, page) |
-| Restatements | a Book (hicite's `modelcode` is available through `hicite-doctype: modelcode` on a Document) | a Book that citation-phoenix marks as a **Restatement** (a pseudotype this add-on expects; see below) exports as `modelcode`: the title as `name`, the author (the American Law Institute) as `instauth`, the year, and Edition as the draft name (`Tentative Draft No. 2`). Cited as "Restatement (Second) of Torts § 402A (Am. L. Inst. 1965)". |
+| Restatements | a Book (hicite's `modelcode` is available through `hicite-doctype: modelcode` on a Document) | a Book that citation-phoenix marks as a **Restatement** (a pseudotype this add-on expects; see below), or any Book titled "Restatement (...) of ..." or "Restatement of ...", exports as `modelcode`: the title as `name`, the author (the American Law Institute, which is supplied when the item has none) as `instauth`, the year, and Edition as the draft name (`Tentative Draft No. 2`). Cited as "Restatement (Second) of Torts § 402A (Am. L. Inst. 1965)". |
 | Migration script | usable | refuses to run (it would replace the court IDs citation-phoenix keeps) |
 
 Everything in the right-hand column is off when citation-phoenix is absent, so an environment without it exports exactly as before.

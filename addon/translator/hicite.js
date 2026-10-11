@@ -804,6 +804,7 @@ function restatementDef(item, key) {
 	d.title('name', pick(item, 'title')).names(item, 'author', 'author', 'instauth', maxAuthors())
 		.set('edition', pick(item, 'edition')).set('year', yearOf(item))
 		.inline(item).url(item);
+	if (!d.lines.some(function (l) { return /^    (?:author|instauth)=/.test(l); })) d.set('instauth', 'American Law Institute'); // a restatement entered without its author
 	return d;
 }
 
@@ -1032,10 +1033,14 @@ function fromRoman(r) {
 }
 
 // hicite's statcode page: "S 230" prints the section sign ("S" stands for it); a section given with one is kept
-// "\-" (citation-phoenix's own escape) and plain hyphens are hyphens in the number, unless the section is given as a range ("\u00a7\u00a7 1-5")
+// "\-" (citation-phoenix's own escape) and plain hyphens are hyphens in the number ("50-f", "47-25-1102", "12-101"), unless the section is a range:
+// one given with "\u00a7\u00a7"/"SS", or with a dash ("351-360fff\u20138"), or two numbers of the same length, the first smaller ("7901-7903", "61.1-61.429").
 function sectionHyphens(sect) {
 	sect = String(sect).replace(/\\-/g, '-');
-	return /^(?:\u00A7\u00A7|SS\b|ss\.)/.test(sect) ? sect : sect.replace(/-/g, '\uE000');
+	var m = /^(\d+)(\.\d+)?\s*-\s*(\d+)(\.\d+)?(?:\s+et seq\.)?$/.exec(sect);
+	var range = /^(?:\u00A7\u00A7|SS\b|ss\.)/.test(sect) || /[\u2013\u2014]|--/.test(sect) ||
+		(m && m[1].length === m[3].length && parseFloat(m[1] + (m[2] || '')) < parseFloat(m[3] + (m[4] || '')));
+	return range ? sect : sect.replace(/-/g, '\uE000');
 }
 function sectionPin(sect) {
 	sect = sectionHyphens(sect);
@@ -1144,14 +1149,23 @@ function emit(item, key) {
 	var t = item.itemType, dt = docType(item), d;
 	if (t === 'document' && dt && (d = emitVirtual(item, key, dt))) return [d];
 
-	// A session law: marked in Extra, or filed under "Stat." with a public law number (what the Westlaw and Lexis web
-	// translators save: volume in the code number, first page in the section)
-	if (t === 'statute' && (dt === 'statsess' || (!dt && /^Stat\.?$/.test(pick(item, 'code').trim()) && pick(item, 'publicLawNumber') && pick(item, 'codeNumber')))) {
+	// A session law: marked in Extra, or filed under "Stat." (or "Statutes at Large") with a public law number (what the Westlaw and Lexis web
+	// translators save: volume in the code number, first page in the section). Without a public law number (acts before 1957) hicite's statsess
+	// cannot be used, so it is a government document: "An Act ..., 36 Stat. 557 (June 20, 1910)".
+	var atLarge = t === 'statute' && !dt && /^(?:Stat\.?|Statutes at Large)$/.test(pick(item, 'code').trim()) && pick(item, 'codeNumber');
+	if (t === 'statute' && (dt === 'statsess' || (atLarge && pick(item, 'publicLawNumber')))) {
 		d = new Def('statsess', key);
 		d.set('name', pick(item, 'nameOfAct', 'title')).set('number', pick(item, 'publicLawNumber'))
-			.set('vol', pick(item, 'codeNumber', 'volume')).set('rep', pick(item, 'code'))
+			.set('vol', pick(item, 'codeNumber', 'volume')).set('rep', atLarge ? 'Stat.' : pick(item, 'code'))
 			.set('page', firstPage(pick(item, 'pages') || pick(item, 'section'))).set('year', dateOf(item))
 			.inline(item).url(item);
+		return [withExtras(item, d)];
+	}
+	if (atLarge && (pick(item, 'pages') || /^\d/.test(pick(item, 'section')))) {
+		d = new Def('govdoc', key);
+		d.title('name', pick(item, 'nameOfAct', 'title')).names(item, 'author', 'author', 'instauth', maxAuthors())
+			.set('vol', atLarge).set('rep', 'Stat.').set('page', firstPage(pick(item, 'pages') || pick(item, 'section')))
+			.set('year', dateOf(item)).inline(item).url(item);
 		return [withExtras(item, d)];
 	}
 	if (t === 'bill') {
@@ -1171,7 +1185,7 @@ function emit(item, key) {
 	}
 
 	if (t === 'document' && !dt && phoenixOn() && legalOf(item).xtype === 'treaty') return [withExtras(item, treatyDef(item, key))];
-	if (t === 'book' && phoenixOn() && legalOf(item).xtype === 'restatement') return [withExtras(item, restatementDef(item, key))];
+	if (t === 'book' && ((phoenixOn() && legalOf(item).xtype === 'restatement') || /^Restatement\s*(?:\(|of\b)/i.test(pick(item, 'title')))) return [withExtras(item, restatementDef(item, key))];
 
 	var defs = emitBase(item, key);
 	// the Extra parameters go on the ordinary definitions too (case, jrnart, book, ...)

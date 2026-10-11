@@ -221,6 +221,10 @@ has(gen({ itemType: 'statute', nameOfAct: 'Subject matter of copyright: In gener
 has(gen({ itemType: 'statute', nameOfAct: 'Right of publicity', code: 'N.Y. Civ. Rights Law', section: '50-f', extra: 'Citation Key: pub1' }), '{N.Y. Civ. Rights Law S 50\\-f}', 'a hyphenated section, one-line form');
 has(gen({ itemType: 'statute', nameOfAct: 'Right of Publicity Act', code: 'N.Y. Civ. Rights Law', section: '50\\-f', extra: 'Citation Key: pub2' }), 'page={S 50\\-f},', 'citation-phoenix\'s own "\\-" is kept, not turned into a backslash');
 has(gen({ itemType: 'statute', nameOfAct: 'Part Definitions Act', code: 'Tenn. Code Ann.', section: '47-25-1102', extra: 'Citation Key: pub3' }), 'page={S 47\\-25\\-1102},', 'every hyphen of a multi-hyphen section');
+has(gen({ itemType: 'statute', nameOfAct: 'Protection of Lawful Commerce in Arms Act', code: 'U.S.C.', codeNumber: '15', section: '7901-7903', extra: 'Citation Key: rng1' }), 'page={S 7901-7903},', 'two numbers of the same length are a range');
+has(gen({ itemType: 'statute', nameOfAct: 'Certification Act', code: 'C.F.R.', codeNumber: '14', section: '61.1-61.429', extra: 'Citation Key: rng2' }), 'page={S 61.1-61.429},', 'a range of decimal sections');
+has(gen({ itemType: 'statute', nameOfAct: 'Arizona Act', code: 'Ariz. Rev. Stat.', section: '12-101', extra: 'Citation Key: rng3' }), 'page={S 12\\-101},', 'numbers of different lengths are one hyphenated section');
+has(gen({ itemType: 'statute', nameOfAct: 'Drug Act', code: 'U.S.C.', codeNumber: '21', section: '351-360fff\u20138', extra: 'Citation Key: rng4' }), 'page={S 351-360fff', 'a section with a dash is a range');
 has(gen({ itemType: 'statute', nameOfAct: 'Sections Act', code: 'U.S.C.', codeNumber: '17', section: '\u00a7\u00a7 101-103', extra: 'Citation Key: pub4' }), 'page={\u00a7\u00a7 101-103},', 'an explicit range of sections keeps its hyphen');
 has(gen({ itemType: 'statute', nameOfAct: 'Purpose', code: 'C.F.R.', codeNumber: '45', section: '73.735\u2013101', extra: 'Citation Key: pub5' }), '73.735', 'an en dash passes through');
 // session laws (what the Westlaw and Lexis web translators save: code "Stat.", volume, first page in the section) and chapter codes
@@ -230,6 +234,15 @@ has(gen({ itemType: 'statute', nameOfAct: 'Old Act', code: 'Stat.', codeNumber: 
 has(gen({ itemType: 'statute', nameOfAct: 'Inapplicability of certain sections to cities', code: 'Mass. Gen. Laws', codeNumber: '78', section: '21', extra: 'Citation Key: ma1' }), '{Mass. Gen. Laws ch. 78, S 21}', 'a Massachusetts section is cited by chapter');
 e = gen({ itemType: 'statute', nameOfAct: 'Public Library Act', code: 'Mass. Gen. Laws', codeNumber: '78', section: '21', extra: 'Citation Key: ma2' });
 has(e, 'rep={Mass. Gen. Laws ch. 78},', 'chapter in the code, keyword form'); hasNot(e, 'vol=', 'and no volume');
+// pre-1957 acts have no public law number: a government document, "36 Stat. 557"
+e = gen({ itemType: 'statute', nameOfAct: 'An Act To enable the people of New Mexico to form a constitution', code: 'Stat.', codeNumber: '36', pages: '557-579', dateEnacted: 'June 20, 1910', extra: 'Citation Key: nm1910' });
+has(e, '\\defgovdoc{nm1910}', 'a Stat. item with no public law number is a govdoc'); has(e, 'vol={36},', 'volume'); has(e, 'rep={Stat.},', 'reporter'); has(e, 'page={557},', 'first page');
+e = gen({ itemType: 'statute', nameOfAct: 'No Electronic Theft (NET) Act', code: 'Statutes at Large', codeNumber: '111', pages: '2678', publicLawNumber: '105-147', dateEnacted: '1997', extra: 'Citation Key: net' });
+has(e, '\\defstatsess{net}', '"Statutes at Large" with a public law number is a statsess'); has(e, 'rep={Stat.},', 'and its reporter is Stat.');
+e = gen({ itemType: 'book', title: 'Restatement (Second) of Torts', date: '1965', creators: [{ creatorType: 'author', name: 'American Law Institute', fieldMode: 1 }], extra: 'Citation Key: rst2' });
+has(e, '\\defmodelcode{rst2}', 'a book titled "Restatement (...) of ..." is a model code without the citation-phoenix marker');
+e = gen({ itemType: 'book', title: 'Restatement (Second) of Torts', date: '1977', extra: 'Citation Key: rst3' });
+has(e, 'instauth={American Law Institute},', 'a restatement entered without an author is the American Law Institute\'s');
 has(gen({ itemType: 'statute', nameOfAct: 'Institution of inter partes review', code: 'C.F.R.', codeNumber: '37', section: '42.108', extra: 'Citation Key: ipr' }), '\\defregcode{ipr}', 'a C.F.R. section is a regcode, with or without citation-phoenix');
 has(gen({ itemType: 'statute', nameOfAct: 'Local Law', code: 'N.Y.C. Admin. Code', codeNumber: '', section: '8-107', extra: 'Citation Key: nyc' }), '\\defstatcode{nyc}', 'the New York City Administrative Code is legislation, not a regcode');
 has(gen({ itemType: 'statute', nameOfAct: 'A judge shall perform the duties of judicial office', code: 'NYCRR', codeNumber: '22', section: '100.3', extra: 'Citation Key: nyj' }), '\\defregcode{nyj}', 'an NYCRR section is a regcode');
