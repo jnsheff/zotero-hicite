@@ -79,6 +79,10 @@ To build it yourself: `make xpi`.
 | Case | `case` (`p`/`d` split at "v."; Short Title as `inline`; a reported case is dated by its year, an unreported one by its full date; reporter "Slip Op." becomes the `slip` flag) A court that the reporter already identifies is left out (`U.S.` with a U.S. Reports cite, a state's highest court with its official reporter: `N.Y.` with `N.Y.2d`), and a Westlaw or Lexis cite (`WL`, `LEXIS`) is dated in full, as Bluebook requires, not by its year. |
 | Case named for a court paper ("Complaint: Garcia v. Character Technologies", "Order Granting ..., Bartz v. Anthropic PBC") or with the Short Title "Complaint" | `casedoc`, the case as an anonymous reference |
 | Statute (code + section) | `statcode`: the one-line form (`17 U.S.C. S 102`) for a bare section; the keyword form (name, short form, year kept) for an act with a name or a Short Title |
+| Statute filed under C.F.R., NYCRR or an administrative code | `regcode` (same forms as `statcode`), with or without citation-phoenix; the New York City Administrative Code stays a `statcode` |
+| Statute filed under "Stat." with a Public Law Number (what the Westlaw and Lexis web translators save for a session law) | `statsess`; the page is read from Section when Pages is empty. Without a Public Law Number it stays a `statcode` |
+| Statute under "Mass. Gen. Laws" / "M.G.L." with a Code Number | the number is a chapter, not a volume: `Mass. Gen. Laws ch. 78, S 21` |
+| A hyphen in a Section ("50-f", "47-25-1102") | written `\-`, because hicite reads a plain hyphen as a range (`S 50-f` prints "§§ 50–f"); citation-phoenix's own `\-` is accepted. A Section that starts with `§§` (or `SS`) keeps its hyphen as a range, and an en dash passes through |
 | Statute filed under "Federal Register" (executive orders, agency guidance; also "C.F.R." with a page) | `govdoc` (`Exec. Order No. 14110, Title, 88 Fed. Reg. 75191`) |
 | Statute "U.S. Const. Art. I, §8, cl. 8" / "U.S. Const. amend. I" | `const` / `constamend` |
 | Bill | `bill`; hicite needs the Congress, taken from Session, else "119th Congress" in the URL or text, else the date |
