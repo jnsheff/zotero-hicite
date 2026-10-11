@@ -76,7 +76,7 @@ To build it yourself: `make xpi`.
 | Thesis / Manuscript | `manuscript` |
 | Letter | `letter` (sender, recipient as `to`) when it has a sender or recipient, else `manuscript` |
 | Report | `workingpaper` (if it has a report number) else `book` |
-| Case | `case` (`p`/`d` split at "v."; Short Title as `inline`; a reported case is dated by its year, an unreported one by its full date; reporter "Slip Op." becomes the `slip` flag) |
+| Case | `case` (`p`/`d` split at "v."; Short Title as `inline`; a reported case is dated by its year, an unreported one by its full date; reporter "Slip Op." becomes the `slip` flag) A court that the reporter already identifies is left out (`U.S.` with a U.S. Reports cite, a state's highest court with its official reporter: `N.Y.` with `N.Y.2d`), and a Westlaw or Lexis cite (`WL`, `LEXIS`) is dated in full, as Bluebook requires, not by its year. |
 | Case named for a court paper ("Complaint: Garcia v. Character Technologies", "Order Granting ..., Bartz v. Anthropic PBC") or with the Short Title "Complaint" | `casedoc`, the case as an anonymous reference |
 | Statute (code + section) | `statcode`: the one-line form (`17 U.S.C. S 102`) for a bare section; the keyword form (name, short form, year kept) for an act with a name or a Short Title |
 | Statute filed under "Federal Register" (executive orders, agency guidance; also "C.F.R." with a page) | `govdoc` (`Exec. Order No. 14110, Title, 88 Fed. Reg. 75191`) |

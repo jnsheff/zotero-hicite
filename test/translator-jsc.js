@@ -44,6 +44,11 @@ has(entry(out, 'garcia'), 'd={Character Technologies Inc.}', '"v" without a peri
 has(entry(out, 'doe'), 'url=', 'case without a reporter keeps its URL'); has(entry(out, 'doe'), 'docket={24-7700}', 'docket');
 has(entry(out, 'inrenimitztechnologies'), 'name={In re Nimitz Technologies LLC}', 'no " v. ": a single name');
 
+// a typed court the reporter already identifies is left out; Westlaw and Lexis cites are dated in full (Bluebook)
+e = entry(out, 'warholus'); hasNot(e, 'court=', 'court "U.S." omitted with a U.S. Reports cite'); has(e, 'year={2023}', 'a reported case is dated by its year');
+hasNot(entry(out, 'boomerny'), 'court=', 'court "N.Y." omitted with N.Y.2d'); has(entry(out, 'guild2d'), 'court={2d Cir.}', 'a circuit court is kept');
+e = entry(out, 'rossintel'); has(e, 'court={D. Del.}', 'court kept with a WL cite'); has(e, 'rep={WL}', 'WL reporter'); has(e, 'year={feb 11 2025}', 'a WL cite is dated in full');
+e = entry(out, 'doelexis'); has(e, 'year={jan 5 2023}', 'a LEXIS cite is dated in full'); has(e, 'court={S.D.N.Y.}', 'court kept with a LEXIS cite');
 // settings switch each rule off
 has(one(function (i) { return i.title === 'Attention Is All You Need'; }, { shortTitleInline: false }), 'title={Attention Is All You Need}', 'sanity');
 hasNot(one(function (i) { return i.title === 'Attention Is All You Need'; }, { shortTitleInline: false }), 'inline=', 'shortTitleInline off');
@@ -212,8 +217,26 @@ has(e, '\\defgovdoc{eo}', 'executive order is a govdoc'); has(e, 'number={Exec. 
 has(gen({ itemType: 'statute', nameOfAct: 'U.S. Const. Art. I, §8, cl. 8', extra: 'Citation Key: c1' }), 'page={article I, S 8, clause 8},', 'constitutional provision');
 has(gen({ itemType: 'statute', nameOfAct: 'U.S. Const. amend. XIV', extra: 'Citation Key: c2' }), 'number={14},', 'amendment number from Roman numerals');
 has(gen({ itemType: 'statute', nameOfAct: 'Subject matter of copyright: In general', code: 'U.S.C.', codeNumber: '17', section: '102', url: 'https://x.org/s', extra: 'Citation Key: s102' }), '\\defstatcode{s102}{17 U.S.C. S 102}', 'a bare section is hicite\'s one-line form');
+// hicite reads a plain hyphen in a section number as a range ("S 50-f" prints "\u00a7\u00a7 50\u2013f"); the hyphen is written as "\-"
+has(gen({ itemType: 'statute', nameOfAct: 'Right of publicity', code: 'N.Y. Civ. Rights Law', section: '50-f', extra: 'Citation Key: pub1' }), '{N.Y. Civ. Rights Law S 50\\-f}', 'a hyphenated section, one-line form');
+has(gen({ itemType: 'statute', nameOfAct: 'Right of Publicity Act', code: 'N.Y. Civ. Rights Law', section: '50\\-f', extra: 'Citation Key: pub2' }), 'page={S 50\\-f},', 'citation-phoenix\'s own "\\-" is kept, not turned into a backslash');
+has(gen({ itemType: 'statute', nameOfAct: 'Part Definitions Act', code: 'Tenn. Code Ann.', section: '47-25-1102', extra: 'Citation Key: pub3' }), 'page={S 47\\-25\\-1102},', 'every hyphen of a multi-hyphen section');
+has(gen({ itemType: 'statute', nameOfAct: 'Sections Act', code: 'U.S.C.', codeNumber: '17', section: '\u00a7\u00a7 101-103', extra: 'Citation Key: pub4' }), 'page={\u00a7\u00a7 101-103},', 'an explicit range of sections keeps its hyphen');
+has(gen({ itemType: 'statute', nameOfAct: 'Purpose', code: 'C.F.R.', codeNumber: '45', section: '73.735\u2013101', extra: 'Citation Key: pub5' }), '73.735', 'an en dash passes through');
+// session laws (what the Westlaw and Lexis web translators save: code "Stat.", volume, first page in the section) and chapter codes
+e = gen({ itemType: 'statute', nameOfAct: 'Leahy-Smith America Invents Act', code: 'Stat.', codeNumber: '125', section: '284', publicLawNumber: '112-29', session: '112', dateEnacted: 'September 16, 2011', extra: 'Citation Key: aia' });
+has(e, '\\defstatsess{aia}', 'a Stat. item with a public law number is a session law'); has(e, 'number={112-29},', 'public law number'); has(e, 'vol={125},', 'volume'); has(e, 'page={284},', 'the page, from the section');
+has(gen({ itemType: 'statute', nameOfAct: 'Old Act', code: 'Stat.', codeNumber: '16', section: 'ch. 230', extra: 'Citation Key: old' }), '\\defstatcode{old}', 'a Stat. item without a public law number stays a statcode');
+has(gen({ itemType: 'statute', nameOfAct: 'Inapplicability of certain sections to cities', code: 'Mass. Gen. Laws', codeNumber: '78', section: '21', extra: 'Citation Key: ma1' }), '{Mass. Gen. Laws ch. 78, S 21}', 'a Massachusetts section is cited by chapter');
+e = gen({ itemType: 'statute', nameOfAct: 'Public Library Act', code: 'Mass. Gen. Laws', codeNumber: '78', section: '21', extra: 'Citation Key: ma2' });
+has(e, 'rep={Mass. Gen. Laws ch. 78},', 'chapter in the code, keyword form'); hasNot(e, 'vol=', 'and no volume');
+has(gen({ itemType: 'statute', nameOfAct: 'Institution of inter partes review', code: 'C.F.R.', codeNumber: '37', section: '42.108', extra: 'Citation Key: ipr' }), '\\defregcode{ipr}', 'a C.F.R. section is a regcode, with or without citation-phoenix');
+has(gen({ itemType: 'statute', nameOfAct: 'Local Law', code: 'N.Y.C. Admin. Code', codeNumber: '', section: '8-107', extra: 'Citation Key: nyc' }), '\\defstatcode{nyc}', 'the New York City Administrative Code is legislation, not a regcode');
+has(gen({ itemType: 'statute', nameOfAct: 'A judge shall perform the duties of judicial office', code: 'NYCRR', codeNumber: '22', section: '100.3', extra: 'Citation Key: nyj' }), '\\defregcode{nyj}', 'an NYCRR section is a regcode');
+e = gen({ itemType: 'statute', nameOfAct: 'COVID-19 Vaccination and Testing; Emergency Temporary Standard', code: 'Fed. Reg.', codeNumber: '86', section: '61402', dateEnacted: 'November 5, 2021', extra: 'Citation Key: ets' });
+has(e, '\\defgovdoc{ets}', 'a Federal Register document from the web translators is a govdoc'); has(e, 'vol={86},', 'volume'); has(e, 'rep={Fed. Reg.},', 'reporter'); has(e, 'page={61402},', 'first page'); has(e, 'year={nov 5 2021},', 'full date');
 e = gen({ itemType: 'statute', nameOfAct: 'Ensuring Likeness, Voice, and Image Security Act', shortTitle: 'ELVIS Act', code: 'Tenn. C.', codeNumber: '47', section: '1-101', dateEnacted: '2024', url: 'https://x.org/s', extra: 'Citation Key: elvis' });
-has(e, 'name={Ensuring Likeness, Voice, and Image Security Act},', 'a named act keeps its name'); has(e, 'rep={Tenn. C.},', 'code'); has(e, 'vol={47},', 'title'); has(e, 'page={S 1-101},', 'section, with the section sign'); has(e, 'inline={ELVIS Act},', 'short form'); has(e, 'year={2024},', 'year'); hasNot(e, 'url=', 'a codified section drops its URL');
+has(e, 'name={Ensuring Likeness, Voice, and Image Security Act},', 'a named act keeps its name'); has(e, 'rep={Tenn. C.},', 'code'); has(e, 'vol={47},', 'title'); has(e, 'page={S 1\\-101},', 'section, with the section sign (the hyphen escaped so hicite does not read a range)'); has(e, 'inline={ELVIS Act},', 'short form'); has(e, 'year={2024},', 'year'); hasNot(e, 'url=', 'a codified section drops its URL');
 has(gen({ itemType: 'statute', nameOfAct: 'Copyright Registration Guidance', code: 'C.F.R.', codeNumber: '88', section: '16190', pages: '16190', dateEnacted: '2023-03-16', extra: 'Citation Key: crg' }), 'rep={Fed. Reg.},', 'a C.F.R. item with a page is a Federal Register document');
 
 has(run({}, {}, [mk({ itemType: 'webpage', extra: 'Citation Key: empty1' })]), '% hicite: skipped empty1', 'an empty item is skipped, not exported as an invalid definition');

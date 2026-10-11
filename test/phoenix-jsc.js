@@ -24,8 +24,8 @@ hasNot(entry(on, 'loreal'), 'court=', 'on: an untranslatable court ID is left ou
 has(entry(off, 'loreal'), 'court={ecj\\textasciitilde{}chamber.1}', 'off: raw court, as before (TeX-escaped)');
 has(entry(on, 'arnstein'), 'court={2d Cir.}', 'on: a typed court is left alone'); has(entry(off, 'arnstein'), 'court={2d Cir.}', 'off: same');
 // regulations
-has(entry(on, 'tmrules'), '\\defregcode{tmrules}{37 C.F.R. S 2.1}', 'on: a bare regulation section is the one-line regcode'); has(entry(off, 'tmrules'), '\\defstatcode{tmrules}{37 C.F.R. S 2.1}', 'off: statcode as before');
-e = entry(on, 'tmaregs'); has(e, '\\defregcode{tmaregs}', 'on: a named regulation is a keyword-form regcode'); has(e, 'rep={C.F.R.}', 'regcode keeps the code'); has(entry(off, 'tmaregs'), '\\defstatcode{tmaregs}', 'off: statcode');
+has(entry(on, 'tmrules'), '\\defregcode{tmrules}{37 C.F.R. S 2.1}', 'on: a bare regulation section is the one-line regcode'); has(entry(off, 'tmrules'), '\\defregcode{tmrules}{37 C.F.R. S 2.1}', 'off: a C.F.R. section is a regcode anyway (by its code)');
+e = entry(on, 'tmaregs'); has(e, '\\defregcode{tmaregs}', 'on: a named regulation is a keyword-form regcode'); has(e, 'rep={C.F.R.}', 'regcode keeps the code'); has(entry(off, 'tmaregs'), '\\defregcode{tmaregs}', 'off: regcode anyway (by its code)');
 has(entry(on, 'tmafedreg'), '\\defgovdoc{tmafedreg}', 'on: a Federal Register regulation stays a govdoc'); eq(entry(on, 'tmafedreg'), entry(off, 'tmafedreg'), 'and is identical in both modes');
 // treaties
 var e = entry(on, 'nice'); has(e, '\\deftreaty{nice}', 'on: a phoenix treaty is a hicite treaty'); has(e, 'rep={WIPO Doc}', 'treaty reporter from the block'); has(e, 'year={sep 28 1979}', 'treaty date = signing date'); has(e, 'name={Nice Agreement', 'treaty name');

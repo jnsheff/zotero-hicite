@@ -1020,5 +1020,62 @@
   ],
   "date": "2020",
   "extra": "hicite-number: 2\nCitation Key: skinner2020"
+ },
+ {
+  "itemType": "case",
+  "caseName": "Andy Warhol Foundation for the Visual Arts, Inc. v. Goldsmith",
+  "shortTitle": "Warhol",
+  "court": "U.S.",
+  "reporter": "U.S.",
+  "reporterVolume": "598",
+  "firstPage": "508",
+  "dateDecided": "2023-05-18",
+  "docketNumber": "No. 21-869",
+  "extra": "Citation Key: warholus"
+ },
+ {
+  "itemType": "case",
+  "caseName": "Thomson Reuters Enterprise Centre GmbH v. Ross Intelligence Inc.",
+  "shortTitle": "Ross",
+  "court": "D. Del.",
+  "reporter": "WL",
+  "reporterVolume": "2025",
+  "firstPage": "458520",
+  "dateDecided": "2025-02-11",
+  "docketNumber": "No. 1:20-cv-613",
+  "extra": "Citation Key: rossintel"
+ },
+ {
+  "itemType": "case",
+  "caseName": "Doe v. Roe",
+  "shortTitle": "Doe",
+  "court": "S.D.N.Y.",
+  "reporter": "U.S. Dist. LEXIS",
+  "reporterVolume": "2023",
+  "firstPage": "1234",
+  "dateDecided": "2023-01-05",
+  "extra": "Citation Key: doelexis"
+ },
+ {
+  "itemType": "case",
+  "caseName": "Boomer v. Atlantic Cement Co.",
+  "shortTitle": "Boomer",
+  "court": "N.Y.",
+  "reporter": "N.Y.2d",
+  "reporterVolume": "26",
+  "firstPage": "219",
+  "dateDecided": "1970-03-04",
+  "extra": "Citation Key: boomerny"
+ },
+ {
+  "itemType": "case",
+  "caseName": "Authors Guild v. Google, Inc.",
+  "shortTitle": "Guild",
+  "court": "2d Cir.",
+  "reporter": "F.3d",
+  "reporterVolume": "804",
+  "firstPage": "202",
+  "dateDecided": "2015-10-16",
+  "extra": "Citation Key: guild2d"
  }
 ]

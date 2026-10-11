@@ -320,7 +320,10 @@ function texPlain(s, keepEdges) {
 // toggles, so a title already set in italics comes out roman for the italicized part, as Bluebook wants.
 // Other tags (<b>, <sup>, <span>...) are dropped. With `plain` (fields hicite builds control-sequence
 // names from, or names of people) the tags are dropped and nothing is italicized.
-function tex(s, plain) {
+// \uE000 marks a hyphen that is part of a section number ("50-f"); hicite reads a plain hyphen there as a range ("S 50-f" prints
+// "\u00a7\u00a7 50\u2013f"), so it is written as "\-".
+function tex(s, plain) { return texText(s, plain).replace(/\uE000/g, '\\-'); }
+function texText(s, plain) {
 	s = String(s);
 	if (!/<\/?[a-z][^>]*>/i.test(s)) return texPlain(s).trim();
 	var out = '', open = 0;
@@ -736,6 +739,21 @@ function courtFromId(courtId, key) {
 var COURT_ID = /^[a-z][a-z0-9]*([.~][a-z0-9]+)+$/;
 
 // A court the reporter already identifies is omitted (hicite: "may be omitted if the reporter uniquely identifies the court").
+// A typed court gets the same rule: "U.S." with a Supreme Court reporter, a state's highest court ("N.Y.") with its own official
+// reporter ("N.Y.2d"). Bluebook gives "499 U.S. 340 (1991)", not "(U.S. 1991)".
+function courtImpliedByReporter(court, reporter) {
+	var c = String(court || '').trim(), code;
+	if (!c || !reporter) return false;
+	if (c === 'U.S.' && isSupremeReporter(reporter)) return true;
+	for (code in STATES) {
+		if (STATES[code][1] === c && OFFICIAL_HIGH_COURT_REPORTER[code] && OFFICIAL_HIGH_COURT_REPORTER[code].test(squash(reporter))) return true;
+	}
+	return false;
+}
+
+// A Westlaw or Lexis citation ("2025 WL 458520", "2023 U.S. Dist. LEXIS 1234") is not a reported decision: it is dated in full.
+var UNREPORTED_CITE = /\b(?:WL|LEXIS)\b/;
+
 function finalCourt(res, reporter) {
 	if (res.kind === 'supreme') return isSupremeReporter(reporter) ? '' : res.court;
 	if (res.kind === 'state-high') {
@@ -757,10 +775,10 @@ function reporterOf(item) {
 // With it, a Juris-M court ID (in the field, or in the block when the field is empty) is translated using the
 // case's jurisdiction; an ID that cannot be translated with certainty is left out and noted in the output.
 function courtOf(item, reporter) {
-	var c = pick(item, 'court');
-	if (!phoenixOn()) return { court: c, note: '' };
+	var c = pick(item, 'court'), typed = courtImpliedByReporter(c, reporter) ? '' : c;
+	if (!phoenixOn()) return { court: typed, note: '' };
 	var legal = legalOf(item), id = c || String(legal.ef.court || '').trim();
-	if (!id || !COURT_ID.test(id)) return { court: c, note: '' };
+	if (!id || !COURT_ID.test(id)) return { court: typed, note: '' };
 	var res = courtFromId(id, legal.key);
 	if (res.unresolved) return { court: '', note: 'court ' + id + ' [' + (legal.key || 'no jurisdiction') + '] not translated: ' + res.unresolved };
 	return { court: finalCourt(res, reporter), note: '' };
@@ -790,8 +808,14 @@ function restatementDef(item, key) {
 }
 
 // A regulation is a statute with phoenix's "regulation" type; in a code it is a hicite regcode (same parameters as statcode).
+// Items filed under a regulatory compilation (C.F.R., NYCRR, an administrative code) are regcodes whether or not citation-phoenix
+// marked them, so the web translators need not.
+var REGULATORY_CODE = /^C\.?F\.?R\.?$|^NYCRR$|\bAdmin(?:istrative|\.)|\bComp\.? Codes? R\.|\bRegs?\.|\bRegulations\b/i;
+var NOT_REGULATORY_CODE = /^N\.?Y\.?C\.?\s+Admin/i; // the New York City Administrative Code is legislation
 function codeType(item) {
-	return phoenixOn() && legalOf(item).xtype === 'regulation' ? 'regcode' : 'statcode';
+	if (phoenixOn() && legalOf(item).xtype === 'regulation') return 'regcode';
+	var code = pick(item, 'code') || '';
+	return REGULATORY_CODE.test(code) && !NOT_REGULATORY_CODE.test(code) ? 'regcode' : 'statcode';
 }
 
 function emitBase(item, key) {
@@ -992,7 +1016,7 @@ function caseDefs(item, key) {
 	else d.set('vol', vol).set('rep', reporter).set('page', page);
 	// A reported case is dated by its year alone ("(2d Cir. 2015)"); the full date is for slip opinions
 	// and other unreported decisions.
-	var reported = !slip && reporter && vol && page;
+	var reported = !slip && reporter && vol && page && !UNREPORTED_CITE.test(reporter);
 	d.set('docket', pick(item, 'docketNumber')).set('court', courtInfo.court)
 		.set('year', reported ? yearOf(item) || 'nd' : dateOf(item)).inline(item).url(item);
 	return [d];
@@ -1008,10 +1032,27 @@ function fromRoman(r) {
 }
 
 // hicite's statcode page: "S 230" prints the section sign ("S" stands for it); a section given with one is kept
-function sectionPin(sect) { return /^(?:S\b|\u00A7)/.test(sect) || !/^\d/.test(sect) ? sect : 'S ' + sect; }
+// "\-" (citation-phoenix's own escape) and plain hyphens are hyphens in the number, unless the section is given as a range ("\u00a7\u00a7 1-5")
+function sectionHyphens(sect) {
+	sect = String(sect).replace(/\\-/g, '-');
+	return /^(?:\u00A7\u00A7|SS\b|ss\.)/.test(sect) ? sect : sect.replace(/-/g, '\uE000');
+}
+function sectionPin(sect) {
+	sect = sectionHyphens(sect);
+	return /^(?:S\b|\u00A7)/.test(sect) || !/^\d/.test(sect) ? sect : 'S ' + sect;
+}
+
+// Codes cited by chapter, not by title: the number is a chapter ("Mass. Gen. Laws ch. 78, \u00a7 21"), not a volume ("78 Mass. Gen. Laws")
+var CHAPTER_CODE = /^(?:Mass\. Gen\. Laws|M\.G\.L\.|Mass\. Ann\. Laws)$/;
+function chapterCode(item) {
+	var code = pick(item, 'code'), num = pick(item, 'codeNumber', 'volume');
+	return CHAPTER_CODE.test(code) && num ? code + ' ch. ' + num : '';
+}
 
 function statuteDefs(item, key) {
 	var code = pick(item, 'code'), sect = pick(item, 'section'), num = pick(item, 'codeNumber', 'volume');
+	var chap = chapterCode(item);
+	if (chap) { code = chap; num = ''; }
 	var name = pick(item, 'nameOfAct', 'title'), pages = pick(item, 'pages');
 	var d, m;
 	// The Federal Register (executive orders, agency notices and guidance) is entered as a statute in Zotero
@@ -1041,7 +1082,7 @@ function statuteDefs(item, key) {
 				.set('year', yearOf(item)).inline(item).url(item)];
 		}
 		return [{ toString: function () {
-			return '\\def' + codeType(item) + '{' + key + '}{' + tex((num ? num + ' ' : '') + code + ' S ' + sect) + '}\n';
+			return '\\def' + codeType(item) + '{' + key + '}{' + tex((num ? num + ' ' : '') + code + (chap ? ', S ' : ' S ') + sectionHyphens(sect)) + '}\n';
 		} }];
 	}
 	// The Constitution: "U.S. Const. Art. I, §8, cl. 8", "U.S. Const. amend. I"
@@ -1103,11 +1144,13 @@ function emit(item, key) {
 	var t = item.itemType, dt = docType(item), d;
 	if (t === 'document' && dt && (d = emitVirtual(item, key, dt))) return [d];
 
-	if (t === 'statute' && dt === 'statsess') {
+	// A session law: marked in Extra, or filed under "Stat." with a public law number (what the Westlaw and Lexis web
+	// translators save: volume in the code number, first page in the section)
+	if (t === 'statute' && (dt === 'statsess' || (!dt && /^Stat\.?$/.test(pick(item, 'code').trim()) && pick(item, 'publicLawNumber') && pick(item, 'codeNumber')))) {
 		d = new Def('statsess', key);
 		d.set('name', pick(item, 'nameOfAct', 'title')).set('number', pick(item, 'publicLawNumber'))
 			.set('vol', pick(item, 'codeNumber', 'volume')).set('rep', pick(item, 'code'))
-			.set('page', firstPage(pick(item, 'pages'))).set('year', dateOf(item))
+			.set('page', firstPage(pick(item, 'pages') || pick(item, 'section'))).set('year', dateOf(item))
 			.inline(item).url(item);
 		return [withExtras(item, d)];
 	}
@@ -1122,8 +1165,8 @@ function emit(item, key) {
 	if (t === 'statute' && (dt === 'statcode' || extraParams(item).length) && pick(item, 'code') && pick(item, 'section')) {
 		// keyword form, so that origsect / year / name can be given
 		d = new Def(codeType(item), key);
-		d.set('name', pick(item, 'nameOfAct')).set('vol', pick(item, 'codeNumber', 'volume'))
-			.set('rep', pick(item, 'code')).set('page', sectionPin(pick(item, 'section'))).inline(item);
+		d.set('name', pick(item, 'nameOfAct')).set('vol', chapterCode(item) ? '' : pick(item, 'codeNumber', 'volume'))
+			.set('rep', chapterCode(item) || pick(item, 'code')).set('page', sectionPin(pick(item, 'section'))).inline(item);
 		return [withExtras(item, d)];
 	}
 
