@@ -147,5 +147,13 @@
   ],
   "date": "1998",
   "extra": "Citation Key: rest3dtorts"
+ },
+ {
+  "itemType": "case",
+  "caseName": "Complaint: Carrier v. OpenAI Foundation",
+  "docketNumber": "CGC26637791",
+  "dateDecided": "2026-06-11",
+  "court": "cal. super. ct. s.f. cnty.",
+  "extra": "mlzsync1:{\"court\":\"cal. super. ct. s.f. cnty.\",\"jurisdiction\":\"005us:caUnited States|Cal.\",\"division\":\"S.F. Cnty.\"}\nCitation Key: carrier2026"
  }
 ]

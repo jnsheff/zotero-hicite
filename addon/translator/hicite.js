@@ -738,6 +738,15 @@ function courtFromId(courtId, key) {
 // Juris-M court IDs are lowercase and dotted ("court.appeals", "ecj~chamber.1"); typed courts ("2d Cir.") never match.
 var COURT_ID = /^[a-z][a-z0-9]*([.~][a-z0-9]+)+$/;
 
+// A court the user adds to citation-phoenix is stored as its abbreviation lower-cased ("cal. super. ct. s.f. cnty."),
+// with spaces or dots, so it is not a Juris-M ID. Capitalising the first letter of each word and of each dotted
+// initial restores the abbreviation ("Cal. Super. Ct. S.F. Cnty."). A typed court always has a capital, so none
+// is mistaken for a key; "2d Cir." has none to fix.
+var NORMALIZED_COURT = /^(?=.*[a-z])(?=.*[.\s])[^A-Z]+$/;
+function courtFromKey(key) {
+	return String(key).trim().replace(/(^|[\s.(\u2013-])([a-z])/g, function (m, pre, ch) { return pre + ch.toUpperCase(); });
+}
+
 // A court the reporter already identifies is omitted (hicite: "may be omitted if the reporter uniquely identifies the court").
 // A typed court gets the same rule: "U.S." with a Supreme Court reporter, a state's highest court ("N.Y.") with its own official
 // reporter ("N.Y.2d"). Bluebook gives "499 U.S. 340 (1991)", not "(U.S. 1991)".
@@ -778,6 +787,10 @@ function courtOf(item, reporter) {
 	var c = pick(item, 'court'), typed = courtImpliedByReporter(c, reporter) ? '' : c;
 	if (!phoenixOn()) return { court: typed, note: '' };
 	var legal = legalOf(item), id = c || String(legal.ef.court || '').trim();
+	if (id && !COURT_ID.test(id) && NORMALIZED_COURT.test(id)) {
+		var named = courtFromKey(id);
+		return { court: courtImpliedByReporter(named, reporter) ? '' : named, note: '' };
+	}
 	if (!id || !COURT_ID.test(id)) return { court: typed, note: '' };
 	var res = courtFromId(id, legal.key);
 	if (res.unresolved) return { court: '', note: 'court ' + id + ' [' + (legal.key || 'no jurisdiction') + '] not translated: ' + res.unresolved };

@@ -22,6 +22,7 @@ hasNot(entry(on, 'sony'), 'court=', 'on: supreme.court is omitted when the repor
 hasNot(entry(off, 'sony'), 'rep=', 'off: the Juris-M block is ignored'); has(entry(off, 'sony'), 'court={supreme.court}', 'off: raw court');
 hasNot(entry(on, 'loreal'), 'court=', 'on: an untranslatable court ID is left out'); has(on, '% hicite: court ecj~chamber.1 [eu.int:cjeu] not translated', 'on: and noted in the file');
 has(entry(off, 'loreal'), 'court={ecj\\textasciitilde{}chamber.1}', 'off: raw court, as before (TeX-escaped)');
+has(entry(on, 'carrier2026'), 'court={Cal. Super. Ct. S.F. Cnty.}', 'on: a court added to citation-phoenix (stored lower-cased) is capitalised'); has(entry(off, 'carrier2026'), 'court={cal. super. ct. s.f. cnty.}', 'off: the Court field is passed through as before');
 has(entry(on, 'arnstein'), 'court={2d Cir.}', 'on: a typed court is left alone'); has(entry(off, 'arnstein'), 'court={2d Cir.}', 'off: same');
 // regulations
 has(entry(on, 'tmrules'), '\\defregcode{tmrules}{37 C.F.R. S 2.1}', 'on: a bare regulation section is the one-line regcode'); has(entry(off, 'tmrules'), '\\defregcode{tmrules}{37 C.F.R. S 2.1}', 'off: a C.F.R. section is a regcode anyway (by its code)');
