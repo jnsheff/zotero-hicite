@@ -661,7 +661,11 @@ function jurisdictionKey(j) {
 
 // { xtype, key, ef }: the item type phoenix recorded, the jurisdiction key, and its extra fields.
 function legalOf(item) {
-	var data = parseJurism(item.extra) || {}, ef = data.extrafields || {};
+	// The block comes in two shapes: the fields nested under "extrafields", or flat at the top level (some items
+	// have been saved that way). Reading both, the nested ones win.
+	var data = parseJurism(item.extra) || {}, ef = {}, k;
+	for (k in data) if (k !== 'extrafields' && k !== 'extracreators') ef[k] = data[k];
+	for (k in (data.extrafields || {})) ef[k] = data.extrafields[k];
 	return { xtype: String(data.xtype || ef.xtype || ''), key: jurisdictionKey(ef.jurisdiction), ef: ef };
 }
 

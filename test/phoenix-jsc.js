@@ -22,6 +22,7 @@ hasNot(entry(on, 'sony'), 'court=', 'on: supreme.court is omitted when the repor
 hasNot(entry(off, 'sony'), 'rep=', 'off: the Juris-M block is ignored'); has(entry(off, 'sony'), 'court={supreme.court}', 'off: raw court');
 hasNot(entry(on, 'loreal'), 'court=', 'on: an untranslatable court ID is left out'); has(on, '% hicite: court ecj~chamber.1 [eu.int:cjeu] not translated', 'on: and noted in the file');
 has(entry(off, 'loreal'), 'court={ecj\\textasciitilde{}chamber.1}', 'off: raw court, as before (TeX-escaped)');
+has(entry(on, 'ziencik2023'), 'court={C.D. Cal.}', 'on: a Juris-M block saved flat (jurisdiction at the top level) is read'); has(entry(off, 'ziencik2023'), 'court={district.court}', 'off: raw court, as before');
 has(entry(on, 'carrier2026'), 'court={Cal. Super. Ct. S.F. Cnty.}', 'on: a court added to citation-phoenix (stored lower-cased) is capitalised'); has(entry(off, 'carrier2026'), 'court={cal. super. ct. s.f. cnty.}', 'off: the Court field is passed through as before');
 has(entry(on, 'arnstein'), 'court={2d Cir.}', 'on: a typed court is left alone'); has(entry(off, 'arnstein'), 'court={2d Cir.}', 'off: same');
 // regulations

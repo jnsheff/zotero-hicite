@@ -155,5 +155,15 @@
   "dateDecided": "2026-06-11",
   "court": "cal. super. ct. s.f. cnty.",
   "extra": "mlzsync1:{\"court\":\"cal. super. ct. s.f. cnty.\",\"jurisdiction\":\"005us:caUnited States|Cal.\",\"division\":\"S.F. Cnty.\"}\nCitation Key: carrier2026"
+ },
+ {
+  "itemType": "case",
+  "caseName": "Ziencik v. Snap, Inc.",
+  "reporter": "WL",
+  "dateDecided": "2023-02-03",
+  "court": "district.court",
+  "extra": "mlzsync1:{\"jurisdiction\":\"011us:c9:ca.cdUnited States|9th Cir.|C.D. Cal.\",\"court\":\"district.court\",\"yearAsVolume\":\"2023\",\"reporter\":\"WL\"}\nCitation Key: ziencik2023",
+  "reporterVolume": "2023",
+  "firstPage": "458520"
  }
 ]
