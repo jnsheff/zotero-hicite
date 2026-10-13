@@ -1022,7 +1022,7 @@ function caseDefs(item, key) {
 		var inner = new Def('case', '');
 		caseParties(inner, name).set('docket', pick(item, 'docketNumber')).set('court', courtInfo.court);
 		d = new Def('casedoc', key);
-		d.ref('citation', 'case', inner).set('name', titleCase(paper)).set('year', dateOf(item)).url(item);
+		d.ref('citation', 'case', inner).set('name', titleCase(paper)).set('year', dateOf(item)); // no URL: a court paper is cited by its case, and its address (often a login-only copy) is not part of the citation
 		if (courtInfo.note) d.note = courtInfo.note;
 		return [d];
 	}
@@ -1147,7 +1147,8 @@ function emitVirtual(item, key, type) {
 		default:
 			return null;
 	}
-	d.inline(item).url(item);
+	d.inline(item);
+	if (type !== 'casedoc') d.url(item); // a court paper is cited without its address
 	return withExtras(item, d);
 }
 
