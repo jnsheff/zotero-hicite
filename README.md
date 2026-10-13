@@ -143,6 +143,8 @@ Settings > hicite > **Legal data** shows what was found and lets you choose *Aut
 Technically the add-on sets the hidden pref `translators.hicite.phoenix` to `on` or `off`, because the export translator runs in a
 sandbox and cannot look at add-ons itself; changing the pref re-runs your auto-exports.
 
+**Model Penal Code and years.** A book titled "Model Penal Code" is exported as a `modelcode` too ("Model Penal Code (Am. L. Inst. 1985)"). The Westlaw and Lexis+ pages carry no year of the text, so the web translators leave Date blank, and a model code or restatement with no date is written with year `nd` (hicite will not compile one without a year) and prints "n.d.". Enter the year of the text you cite by hand.
+
 The **Restatement** type is not part of upstream citation-phoenix: it is one entry in its `content/schema.json` (`TYPES`, based on Book, plus a field order that puts Edition after the abstract). Add it there to get File > New Item > Restatement; because it is based on Book, an existing restatement keeps every field when you give it the type. Use the Edition field only for a draft name; the series ("Second", "Third") belongs in the title. hicite abbreviates the words of the name as it does for a case name, so "Restatement of the Law" prints as "Restatement of the L." in some titles.
 
 What it does not do (yet): foreign courts and foreign-law types (`eucase`, `frcase`, `engstat`, ...), citation-phoenix's gazette,
