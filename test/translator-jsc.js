@@ -241,6 +241,9 @@ e = gen({ itemType: 'statute', nameOfAct: 'No Electronic Theft (NET) Act', code:
 has(e, '\\defstatsess{net}', '"Statutes at Large" with a public law number is a statsess'); has(e, 'rep={Stat.},', 'and its reporter is Stat.');
 e = gen({ itemType: 'book', title: 'Restatement (Second) of Torts', date: '1965', creators: [{ creatorType: 'author', name: 'American Law Institute', fieldMode: 1 }], extra: 'Citation Key: rst2' });
 has(e, '\\defmodelcode{rst2}', 'a book titled "Restatement (...) of ..." is a model code without the citation-phoenix marker');
+e = gen({ itemType: 'book', title: 'Model Penal Code', date: '1985', publisher: 'American Law Institute', creators: [{ creatorType: 'author', name: 'American Law Institute', fieldMode: 1 }], extra: 'Citation Key: mpc' });
+has(gen({ itemType: 'book', title: 'Model Penal Code', creators: [], extra: 'Citation Key: mpcnd' }), 'year={nd}', 'a restatement or code with no year is "nd": hicite will not compile a model code without one');
+has(e, '\\defmodelcode{mpc}', 'the Model Penal Code is a model code'); has(e, 'instauth={American Law Institute}', 'by the American Law Institute'); has(e, 'year={1985}', 'with its year');
 e = gen({ itemType: 'book', title: 'Restatement (Second) of Torts', date: '1977', extra: 'Citation Key: rst3' });
 has(e, 'instauth={American Law Institute},', 'a restatement entered without an author is the American Law Institute\'s');
 // a Federal Register document saved by the Federal Register web translator

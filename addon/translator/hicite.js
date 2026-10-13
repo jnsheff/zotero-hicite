@@ -819,7 +819,7 @@ function treatyDef(item, key) {
 function restatementDef(item, key) {
 	var d = new Def('modelcode', key);
 	d.title('name', pick(item, 'title')).names(item, 'author', 'author', 'instauth', maxAuthors())
-		.set('edition', pick(item, 'edition')).set('year', yearOf(item))
+		.set('edition', pick(item, 'edition')).set('year', yearOf(item) || 'nd') // hicite requires a year
 		.inline(item).url(item);
 	if (!d.lines.some(function (l) { return /^    (?:author|instauth)=/.test(l); })) d.set('instauth', 'American Law Institute'); // a restatement entered without its author
 	return d;
@@ -1203,7 +1203,7 @@ function emit(item, key) {
 	}
 
 	if (t === 'document' && !dt && phoenixOn() && legalOf(item).xtype === 'treaty') return [withExtras(item, treatyDef(item, key))];
-	if (t === 'book' && ((phoenixOn() && legalOf(item).xtype === 'restatement') || /^Restatement\s*(?:\(|of\b)/i.test(pick(item, 'title')))) return [withExtras(item, restatementDef(item, key))];
+	if (t === 'book' && ((phoenixOn() && legalOf(item).xtype === 'restatement') || /^(?:Restatement\s*(?:\(|of\b)|Model Penal Code\b)/i.test(pick(item, 'title')))) return [withExtras(item, restatementDef(item, key))];
 
 	var defs = emitBase(item, key);
 	// the Extra parameters go on the ordinary definitions too (case, jrnart, book, ...)
