@@ -1001,6 +1001,9 @@ function emitBase(item, key) {
 // is the kind of paper. hicite cites them with \defcasedoc: "Complaint, Garcia v. Character Techs., No.
 // ... (M.D. Fla. Oct. 22, 2024)".
 var COURT_PAPER = /^((?:(?:first|second|third|amended)\s+)*(?:complaint|answer|counterclaim|motion|brief|order|opinion|declaration|affidavit|memorandum|petition|judgment|transcript|stipulation|subpoena|indictment|response|reply|opposition|application)\b[^:,]*?)\s*[:,]\s+(.+)$/i;
+// A paper whose own name has commas or is an exhibit, ended by a colon before the parties:
+// "Exhibit 1 to Declaration of Christopher R. Clark in Support of Defendants' Motion to Dismiss - Chat Logs: Joshi v. OpenAI Foundation"
+var COURT_PAPER_COLON = /^((?:(?:first|second|third|amended)\s+)*(?:exhibit|appendix|attachment|annex|summons|civil cover sheet|complaint|answer|counterclaim|motion|brief|order|opinion|declaration|affidavit|memorandum|petition|judgment|transcript|stipulation|subpoena|indictment|response|reply|opposition|application)\b[^:]*?)\s*:\s+([^,:]+?\s+v\.?\s+[^:]+)$/i;
 var COURT_PAPER_WORD = /^(?:(?:first|second|third|amended)\s+)*(complaint|answer|counterclaim|motion|brief|order|opinion|declaration|affidavit|memorandum|petition|judgment|transcript|stipulation)$/i;
 
 function caseParties(def, name) {
@@ -1012,7 +1015,7 @@ function caseParties(def, name) {
 
 function caseDefs(item, key) {
 	var name = pick(item, 'caseName', 'title'), st = pick(item, 'shortTitle');
-	var paper = '', m = COURT_PAPER.exec(name);
+	var paper = '', m = COURT_PAPER_COLON.exec(name) || COURT_PAPER.exec(name);
 	if (m) { paper = m[1]; name = m[2]; }
 	else if (COURT_PAPER_WORD.test(st) && /\sv\.?\s/i.test(name)) paper = st;
 	var reporter = reporterOf(item), vol = pick(item, 'reporterVolume'), page = firstPage(pick(item, 'firstPage', 'pages'));
@@ -1022,7 +1025,9 @@ function caseDefs(item, key) {
 		var inner = new Def('case', '');
 		caseParties(inner, name).set('docket', pick(item, 'docketNumber')).set('court', courtInfo.court);
 		d = new Def('casedoc', key);
-		d.ref('citation', 'case', inner).set('name', titleCase(paper)).set('year', dateOf(item)); // no URL: a court paper is cited by its case, and its address (often a login-only copy) is not part of the citation
+		d.ref('citation', 'case', inner).set('name', titleCase(paper)).set('year', dateOf(item));
+		if (st && !COURT_PAPER_WORD.test(st)) d.inline(item); // a Short Title that is not itself the kind of paper is the short form ("Exhibit 1 - Chat Logs")
+		// no URL: a court paper is cited by its case, and its address (often a login-only copy) is not part of the citation
 		if (courtInfo.note) d.note = courtInfo.note;
 		return [d];
 	}
