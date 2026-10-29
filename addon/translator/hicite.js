@@ -1168,6 +1168,50 @@ function congressOf(item) {
 	return y >= 1789 ? String(Math.floor((y - 1789) / 2) + 1) : '';
 }
 
+// ------------------------------------------------ state session laws
+// A state's session laws are a statsess too: "California AI Transparency Act, ch. 291, 2024 Cal. Stat. (Sept. 19, 2024)". The web translators
+// save one as a Statute whose Code is the session-law reporter (Bluebook T1), Code Number the year, Public Law Number the chapter ("ch. 291")
+// or, when the page gives none, the bill ("S.B. 24-024"); a bill has no place in the reporter, so it is cited by its state: "S.B. 24-024
+// (Colo. Apr. 19, 2024)".
+var STATE_SESSION_REPORTERS = ['Ala. Acts', 'Alaska Sess. Laws', 'Ariz. Sess. Laws', 'Ark. Acts', 'Cal. Stat.', 'Colo. Sess. Laws', 'Conn. Acts', 'Del. Laws',
+	'Fla. Laws', 'Ga. Laws', 'Haw. Sess. Laws', 'Idaho Sess. Laws', 'Ill. Laws', 'Ind. Acts', 'Iowa Acts', 'Kan. Sess. Laws', 'Ky. Acts', 'La. Acts', 'Me. Laws',
+	'Md. Laws', 'Mass. Acts', 'Mich. Pub. Acts', 'Minn. Laws', 'Miss. Laws', 'Mo. Laws', 'Mont. Laws', 'Neb. Laws', 'Nev. Stat.', 'N.H. Laws', 'N.J. Laws',
+	'N.M. Laws', 'N.Y. Laws', 'N.C. Sess. Laws', 'N.D. Laws', 'Ohio Laws', 'Okla. Sess. Laws', 'Or. Laws', 'Pa. Laws', 'R.I. Pub. Laws', 'S.C. Acts',
+	'S.D. Sess. Laws', 'Tenn. Pub. Acts', 'Tex. Gen. Laws', 'Utah Laws', 'Vt. Acts & Resolves', 'Va. Acts', 'Wash. Sess. Laws', 'W. Va. Acts', 'Wis. Laws',
+	'Wyo. Sess. Laws'];
+function stateSessionReporter(item) {
+	var code = pick(item, 'code').replace(/\s+/g, ' ');
+	return STATE_SESSION_REPORTERS.indexOf(code) >= 0 ? code : '';
+}
+// "Cal. Stat." -> "Cal.", "Colo. Sess. Laws" -> "Colo.", "R.I. Pub. Laws" -> "R.I."
+function statePlace(reporter) {
+	return reporter.replace(/\s+(?:Sess\. Laws|Pub\. Acts|Pub\. Laws|Gen\. Laws|Acts & Resolves|Stat\.|Acts|Laws)$/, '');
+}
+// "ch. 291" -> { type: 'ch.', number: '291' }; "S.B. 24-024" -> { type: 'S.B.', number: '24-024' }; "116-283" -> { type: '', number: '116-283' }
+function splitNumber(n) {
+	var m = /^([A-Za-z][A-Za-z. ]*\.)\s+(\d.*)$/.exec(n || '');
+	return m ? { type: m[1], number: m[2] } : { type: '', number: n || '' };
+}
+
+// "Codified: Cal. Bus. & Prof. Code §§ 22757-22757.6" in Extra (not in the Code and Section fields, which would make the session law a codified
+// statute) is hicite's "codified at" parenthetical, which cites a statute by its key: a statcode is defined for the codification. Returns
+// [definitions to write first], and sets the parameter on d.
+function codifiedDefs(item, key, d) {
+	var out = [];
+	[['codified', 'codified at'], ['codified as amended', 'codified as amended at']].forEach(function (c, i) {
+		var m = new RegExp('^\\s*' + c[0] + '\\s*:\\s*(.+?)\\s*$', 'im').exec(item.extra || '');
+		if (!m) return;
+		var cite = /^(?:(\d+)\s+)?(.+?)\s+(?:§§?|Secs?\.)\s*(.+)$/.exec(m[1]);
+		if (!cite) { d.note = (d.note ? d.note + '; ' : '') + c[0] + ' not understood (give a code and a section, "Cal. Bus. & Prof. Code § 22757"): ' + m[1]; return; }
+		var ckey = key + (i ? 'CodifiedAmended' : 'Codified');
+		out.push({ toString: function () {
+			return '\\defstatcode{' + ckey + '}{' + tex((cite[1] ? cite[1] + ' ' : '') + cite[2] + ' S ' + sectionHyphens(cite[3])) + '}\n';
+		} });
+		d.raw('paren', c[1] + ': ' + ckey);
+	});
+	return out;
+}
+
 function emit(item, key) {
 	var t = item.itemType, dt = docType(item), d;
 	if (t === 'document' && dt && (d = emitVirtual(item, key, dt))) return [d];
@@ -1176,20 +1220,36 @@ function emit(item, key) {
 	// translators save: volume in the code number, first page in the section). Without a public law number (acts before 1957) hicite's statsess
 	// cannot be used, so it is a government document: "An Act ..., 36 Stat. 557 (June 20, 1910)".
 	var atLarge = t === 'statute' && !dt && /^(?:Stat\.?|Statutes at Large)$/.test(pick(item, 'code').trim()) && pick(item, 'codeNumber');
+	var stateSL = t === 'statute' && !dt && stateSessionReporter(item);
+	if (stateSL) {
+		var sn = splitNumber(pick(item, 'publicLawNumber')), chapterLike = !sn.type || /^ch\.?$/i.test(sn.type), pg = firstPage(pick(item, 'pages') || pick(item, 'section'));
+		d = new Def('statsess', key);
+		d.set('name', pick(item, 'nameOfAct', 'title')).set('type', sn.type).set('number', sn.number);
+		if (chapterLike) {
+			d.set('vol', pick(item, 'codeNumber', 'volume')).set('rep', stateSL);
+			if (pg) d.set('page', pg); else d.flag('slip'); // the web pages give no page of the reporter
+		}
+		else d.set('place', statePlace(stateSL));
+		d.set('year', dateOf(item)).inline(item).url(item);
+		var pre = codifiedDefs(item, key, d);
+		return pre.concat([withExtras(item, d)]);
+	}
 	if (t === 'statute' && (dt === 'statsess' || (atLarge && pick(item, 'publicLawNumber')))) {
 		d = new Def('statsess', key);
 		d.set('name', pick(item, 'nameOfAct', 'title')).set('number', pick(item, 'publicLawNumber'))
 			.set('vol', pick(item, 'codeNumber', 'volume')).set('rep', atLarge ? 'Stat.' : pick(item, 'code'))
 			.set('page', firstPage(pick(item, 'pages') || pick(item, 'section'))).set('year', dateOf(item))
 			.inline(item).url(item);
-		return [withExtras(item, d)];
+		var pre2 = codifiedDefs(item, key, d);
+		return pre2.concat([withExtras(item, d)]);
 	}
 	if (atLarge && (pick(item, 'pages') || /^\d/.test(pick(item, 'section')))) {
 		d = new Def('govdoc', key);
 		d.title('name', pick(item, 'nameOfAct', 'title')).names(item, 'author', 'author', 'instauth', maxAuthors())
 			.set('vol', atLarge).set('rep', 'Stat.').set('page', firstPage(pick(item, 'pages') || pick(item, 'section')))
 			.set('year', dateOf(item)).inline(item).url(item);
-		return [withExtras(item, d)];
+		var pre3 = codifiedDefs(item, key, d);
+		return pre3.concat([withExtras(item, d)]);
 	}
 	if (t === 'bill') {
 		var congress = congressOf(item);

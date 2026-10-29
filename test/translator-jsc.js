@@ -254,6 +254,20 @@ e = gen({ itemType: 'case', caseName: "Exhibit 1 to Declaration of Christopher R
 has(e, '\\defcasedoc{exhibit1clark}', 'an exhibit is a casedoc'); has(e, 'p={Joshi}', 'the plaintiff is not the paper'); has(e, 'd={Openai Foundation}', 'the defendant'); has(e, 'name={Exhibit 1 to Declaration of Christopher R. Clark', 'the paper'); hasNot(e, 'url=', 'and it has no url'); has(e, 'inline={Exhibit 1 - Chat Logs}', 'its Short Title stays the short form');
 e = gen({ itemType: 'case', caseName: 'Summons For AESTAS, LLC: Joshi v. OpenAI Foundation', court: 'N.D. Fla.', docketNumber: '4:26-cv-00222', dateDecided: 'May 10, 2026', extra: 'Citation Key: summonsaestas' });
 has(e, '\\defcasedoc{summonsaestas}', 'a paper with a comma in its name is a casedoc'); has(e, 'name={Summons For AESTAS, LLC}', 'the whole paper name'); has(e, 'p={Joshi}', 'plaintiff');
+// state session laws (what the LegiScan web translator saves) and the codified-at parenthetical from Extra
+e = gen({ itemType: 'statute', nameOfAct: 'California AI Transparency Act', code: 'Cal. Stat.', codeNumber: '2024', publicLawNumber: 'ch. 291', session: '2023-2024 Regular Session', dateEnacted: 'September 19, 2024',
+	url: 'https://legiscan.com/CA/text/SB942/id/3021807', extra: 'Bill: S.B. 942\nVersion: Chaptered\nCodified: Cal. Bus. & Prof. Code \u00a7\u00a7 22757-22757.6\nCitation Key: caait' });
+has(e, '\\defstatsess{caait}', 'a state session law is a statsess'); has(e, 'type={ch.}', 'chapter'); has(e, 'number={291}', 'chapter number'); has(e, 'vol={2024}', 'year as the volume'); has(e, 'rep={Cal. Stat.}', 'reporter');
+has(e, '    slip,', 'no page: slip'); has(e, 'year={sep 19 2024}', 'date'); has(e, 'paren={codified at: caaitCodified}', 'codified at, by key');
+has(e, '\\defstatcode{caaitCodified}{Cal. Bus. \\& Prof. Code S 22757-22757.6}', 'the codification is a statcode (a range stays a range)'); hasNot(e, 'Bill:', 'Extra lines are not exported');
+e = gen({ itemType: 'statute', nameOfAct: 'Local Lodging Tax Reporting on Sales Return', code: 'Colo. Sess. Laws', codeNumber: '2024', publicLawNumber: 'S.B. 24-024', dateEnacted: 'April 19, 2024', extra: 'Citation Key: cosb' });
+has(e, '\\defstatsess{cosb}', 'a bill is a statsess'); has(e, 'type={S.B.}', 'bill type'); has(e, 'number={24-024}', 'bill number'); has(e, 'place={Colo.}', 'cited by its state'); hasNot(e, 'rep=', 'no reporter'); hasNot(e, 'slip', 'and no slip');
+e = gen({ itemType: 'statute', nameOfAct: 'Old Act', code: 'Cal. Stat.', codeNumber: '1990', publicLawNumber: 'ch. 12', pages: '345-350', dateEnacted: '1990-03-01', extra: 'Citation Key: caold' });
+has(e, 'page={345},', 'a state session law with a page'); hasNot(e, 'slip', 'is not slip');
+e = gen({ itemType: 'statute', nameOfAct: 'National AI Initiative Act', code: 'Stat.', codeNumber: '134', section: '4523', publicLawNumber: '116-283', dateEnacted: '2021-01-01', extra: 'Codified as amended: 15 U.S.C. \u00a7 9401\nCitation Key: naiia' });
+has(e, 'paren={codified as amended at: naiiaCodifiedAmended}', 'codified as amended at'); has(e, '\\defstatcode{naiiaCodifiedAmended}{15 U.S.C. S 9401}', 'a federal codification with a volume');
+e = gen({ itemType: 'statute', nameOfAct: 'Odd Act', code: 'Stat.', codeNumber: '134', section: '4523', publicLawNumber: '116-283', dateEnacted: '2021-01-01', extra: 'Codified: various places\nCitation Key: oddact' });
+has(e, 'codified not understood', 'a codified line without a section is noted, not exported'); hasNot(e, 'paren=', 'and writes no parenthetical');
 // court papers are cited without a URL, whether a Case named for the paper or a Document typed casedoc
 hasNot(gen({ itemType: 'case', caseName: 'Complaint: Garcia v. Character Technologies', court: 'M.D. Fla.', docketNumber: '24-cv-01903', dateDecided: 'October 22, 2024', url: 'https://example.org/garcia.pdf', extra: 'Citation Key: garciaurl' }), 'url=', 'a court paper saved as a case has no url');
 hasNot(gen({ itemType: 'document', title: 'Complaint', url: 'https://example.org/c.pdf', date: '2024-10-22', extra: 'hicite-doctype: casedoc\nCitation Key: cdocurl' }), 'url=', 'a casedoc document has no url');
