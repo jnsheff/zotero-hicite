@@ -436,8 +436,8 @@ function wantUrl(item) {
 		case 'journalArticle': return !(pick(item, 'volume') && pick(item, 'pages'));
 		case 'conferencePaper': return !pick(item, 'pages');
 		case 'book': case 'bookSection': case 'encyclopediaArticle': return false;
-		case 'case': return !pick(item, 'reporter', 'reporterVolume', 'firstPage');
-		case 'statute': return !(pick(item, 'code') && pick(item, 'section')); // a codified section is cited to the code
+		case 'case': return false; // a case, a court paper, a statute, a session law or a bill is cited to its reporter, court or code, not to a web address
+		case 'statute': return false;
 		default: return true;
 	}
 }
@@ -544,8 +544,9 @@ Def.prototype.roles = function (item) {
 Def.prototype.inline = function (item) {
 	return this.set('inline', inlineName(item));
 };
-Def.prototype.url = function (item) {
-	if (wantUrl(item)) this.raw('url', pick(item, 'url').replace(/%/g, '\\%')); // hicite: escape % only
+Def.prototype.url = function (item, always) {
+	// always: a web page is cited by its address whatever the item type (a foreign statute with no code and section is exported as one)
+	if (always ? setting('includeUrls') && pick(item, 'url') : wantUrl(item)) this.raw('url', pick(item, 'url').replace(/%/g, '\\%')); // hicite: escape % only
 	return this;
 };
 // An anonymous reference, as in  in=book: { title={...}, editor={...}, },
@@ -1286,7 +1287,7 @@ function webpage(item, key, note) {
 		.set('title', pick(item, 'title', 'nameOfAct', 'caseName') ? '' : pick(item, 'url')) // hicite needs a title: an untitled page is cited by its address
 		.pub('journal', siteRepeatsAuthor(item, site) ? '' : site)
 		.set('date', dateOf(item))
-		.inline(item).url(item);
+		.inline(item).url(item, item.itemType === 'statute' || item.itemType === 'case'); // a statute or case cited as a web page has only its address
 	return [d];
 }
 

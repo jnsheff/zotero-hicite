@@ -108,8 +108,9 @@ Other export rules: with an *Authors listed* limit set, a longer author list is 
 gets hicite's " et al." (`author={Cy {Gamma} et al.}`); editors are never cut. A Short Title becomes the short-form name (`inline`); single-field names that look
 like people are exported as people (with particles and suffixes: `Bart {van Merrienboer}`,
 `Dean {Edmonds {Jr.}}`); a website's title is left out when it repeats the author; URLs are kept for web
-sources and for cases without a reporter, and dropped for books, chapters and articles that have a print
-citation (a journal article keeps its URL only if volume or pages are missing).
+sources, and dropped for books, chapters and articles that have a print citation (a journal article keeps
+its URL only if volume or pages are missing) and for cases, court papers, statutes, regulations and session laws,
+which are cited to a reporter, a court or a code and not to a web address.
 
 Export option **Include publisher** (off by default) adds publishers to books,
 since Bluebook/Indigo Book style normally omits them. Each auto-export job keeps its own choice; change it in Settings > hicite.

@@ -41,7 +41,7 @@ has(entry(out, 'line2024'), 'url=', 'journal article without volume/pages keeps 
 // cases
 e = entry(out, 'grokster'); has(e, 'p={Metro-Goldwyn-Mayer Studios Inc.}', 'first party'); has(e, 'd={Grokster, Ltd.}', 'second party'); has(e, 'inline={Grokster}', 'Short Title -> inline'); hasNot(e, 'court=', 'no court for U.S. Reports');
 has(entry(out, 'garcia'), 'd={Character Technologies Inc.}', '"v" without a period splits too'); hasNot(entry(out, 'garcia'), 'url=', 'case with a reporter has no URL');
-has(entry(out, 'doe'), 'url=', 'case without a reporter keeps its URL'); has(entry(out, 'doe'), 'docket={24-7700}', 'docket');
+hasNot(entry(out, 'doe'), 'url=', 'a case, even one without a reporter, has no URL'); has(entry(out, 'doe'), 'docket={24-7700}', 'docket');
 has(entry(out, 'inrenimitztechnologies'), 'name={In re Nimitz Technologies LLC}', 'no " v. ": a single name');
 
 // a typed court the reporter already identifies is left out; Westlaw and Lexis cites are dated in full (Bluebook)
@@ -271,7 +271,10 @@ has(e, 'codified not understood', 'a codified line without a section is noted, n
 // court papers are cited without a URL, whether a Case named for the paper or a Document typed casedoc
 hasNot(gen({ itemType: 'case', caseName: 'Complaint: Garcia v. Character Technologies', court: 'M.D. Fla.', docketNumber: '24-cv-01903', dateDecided: 'October 22, 2024', url: 'https://example.org/garcia.pdf', extra: 'Citation Key: garciaurl' }), 'url=', 'a court paper saved as a case has no url');
 hasNot(gen({ itemType: 'document', title: 'Complaint', url: 'https://example.org/c.pdf', date: '2024-10-22', extra: 'hicite-doctype: casedoc\nCitation Key: cdocurl' }), 'url=', 'a casedoc document has no url');
-has(gen({ itemType: 'case', caseName: 'Doe v. Roe', docketNumber: '24-cv-1', court: 'D. Mass.', dateDecided: 'May 1, 2024', url: 'https://example.org/doe', extra: 'Citation Key: doeurl' }), 'url={https://example.org/doe}', 'but an unreported case that is not a court paper keeps its url');
+hasNot(gen({ itemType: 'case', caseName: 'Doe v. Roe', docketNumber: '24-cv-1', court: 'D. Mass.', dateDecided: 'May 1, 2024', url: 'https://example.org/doe', extra: 'Citation Key: doeurl' }), 'url=', 'an unreported case that is not a court paper has no url either');
+has(gen({ itemType: 'statute', nameOfAct: 'Trademarks Regulations', url: 'https://example.org/foreign', dateEnacted: '1996', extra: 'Citation Key: foreignact' }), 'url={https://example.org/foreign}', 'a statute with no code and section is cited as a web page, which keeps its address');
+hasNot(gen({ itemType: 'statute', nameOfAct: 'Some Act', code: 'U.S.C.', codeNumber: '17', section: '106', url: 'https://example.org/act', extra: 'Citation Key: acturl' }), 'url=', 'a codified statute has no url');
+hasNot(gen({ itemType: 'statute', nameOfAct: 'California AI Transparency Act', code: 'Cal. Stat.', codeNumber: '2024', publicLawNumber: 'ch. 291', dateEnacted: 'September 19, 2024', url: 'https://legiscan.com/CA/text/SB942/id/3021807', extra: 'Citation Key: caaiturl' }), 'url=', 'a session law has no url');
 // a court paper saved by the Bloomberg Law web translator
 e = run({ phoenix: 'on' }, {}, [mk({ itemType: 'case', caseName: 'Complaint: Joshi v. OpenAI Foundation', court: 'N.D. Fla.', docketNumber: '4:26-cv-00222', dateDecided: 'May 10, 2026', url: 'https://www.bloomberglaw.com/product/blaw/document/X6RSR9K0SBB8TGPOG903PHAQ7S8',
 	extra: 'mlzsync1:{"extrafields":{"jurisdiction":"012us:c11:fl.ndUnited States|US|Eleventh Circuit|N.D. Florida","filingDate":"May 10, 2026"}}\nDocket Entry: 1\nCase Number: 4:26-cv-00222-MW-MJF\nPart: 2: Civil Cover Sheet\nPages: 76\nCitation Key: joshicomplaint' })]);
